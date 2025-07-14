@@ -28,6 +28,8 @@ import {
   EditCollectionModal,
   ConfirmFieldDeleteDialog,
 } from "@/components";
+import CodeSidebar from "@/components/layout/CodeSidebar";
+import CustomEdge from "@/components/CustomEdge";
 import { useTheme } from "next-themes";
 import toast from "react-hot-toast";
 
@@ -144,6 +146,15 @@ export default function HomePage() {
   }>({
     isOpen: false,
     collection: null,
+  });
+
+  // Code sidebar state
+  const [codeSidebar, setCodeSidebar] = useState<{
+    isOpen: boolean;
+    selectedCollectionId: string | null;
+  }>({
+    isOpen: false,
+    selectedCollectionId: null,
   });
 
   const handleContextMenu = useCallback(
@@ -468,32 +479,82 @@ export default function HomePage() {
     });
   }, []);
 
+  // Code generation handlers
+  const handleGenerateCode = useCallback((collectionId: string) => {
+    setCodeSidebar({
+      isOpen: true,
+      selectedCollectionId: collectionId,
+    });
+  }, []);
+
+  const handleCloseCodeSidebar = useCallback(() => {
+    setCodeSidebar({
+      isOpen: false,
+      selectedCollectionId: null,
+    });
+  }, []);
+
   // Prevent hydration mismatch by using fallback until mounted
   const isDark = mounted ? resolvedTheme === "dark" : false;
 
   const edges: Edge[] = useMemo(() => {
-    return connections.map((connection) => ({
-      id: connection.id,
-      source: connection.sourceCollectionId,
-      target: connection.targetCollectionId,
-      sourceHandle: `${connection.sourceCollectionId}-field-${connection.sourceFieldIndex}-source`,
-      targetHandle: `${connection.targetCollectionId}-field-${connection.targetFieldIndex}-target`,
-      type: "smoothstep",
-      animated: true,
-      style: {
-        stroke: isDark ? "#3b82f6" : "#2563eb",
-        strokeWidth: 2,
-      },
-      markerEnd: {
-        type: MarkerType.Arrow,
-        color: isDark ? "#3b82f6" : "#2563eb",
-      },
-      data: {
-        sourceField: connection.sourceFieldIndex,
-        targetField: connection.targetFieldIndex,
-        connectionType: connection.type,
-      },
-    }));
+    // Group connections by source-target pair to handle overlapping
+    const connectionGroups = connections.reduce((groups, connection) => {
+      const key = `${connection.sourceCollectionId}-${connection.targetCollectionId}`;
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(connection);
+      return groups;
+    }, {} as Record<string, typeof connections>);
+
+    return connections.map((connection, index) => {
+      const groupKey = `${connection.sourceCollectionId}-${connection.targetCollectionId}`;
+      const group = connectionGroups[groupKey];
+      const connectionIndex = group.findIndex((c) => c.id === connection.id);
+      const totalInGroup = group.length;
+
+      // Calculate offset for multiple connections between same nodes
+      let pathOptions = {};
+      if (totalInGroup > 1) {
+        // Create more pronounced spacing for multiple connections
+        const baseOffset = 40;
+        const spacing = Math.min(80, baseOffset + (totalInGroup - 2) * 20);
+        const offset = (connectionIndex - (totalInGroup - 1) / 2) * spacing;
+
+        pathOptions = {
+          offset: offset,
+          borderRadius: Math.abs(offset) + 30,
+          curvature: 0.2 + Math.abs(offset) * 0.005,
+        };
+      }
+
+      return {
+        id: connection.id,
+        source: connection.sourceCollectionId,
+        target: connection.targetCollectionId,
+        sourceHandle: `${connection.sourceCollectionId}-field-${connection.sourceFieldIndex}-source`,
+        targetHandle: `${connection.targetCollectionId}-field-${connection.targetFieldIndex}-target`,
+        type: totalInGroup > 1 ? "custom" : "default",
+        animated: true,
+        style: {
+          stroke: isDark ? "#3b82f6" : "#2563eb",
+          strokeWidth: 2,
+        },
+        markerEnd: {
+          type: MarkerType.Arrow,
+          color: isDark ? "#3b82f6" : "#2563eb",
+        },
+        pathOptions,
+        data: {
+          sourceField: connection.sourceFieldIndex,
+          targetField: connection.targetFieldIndex,
+          connectionType: connection.type,
+          groupIndex: connectionIndex,
+          totalInGroup: totalInGroup,
+        },
+      };
+    });
   }, [connections, isDark]);
 
   const onConnect = useCallback(
@@ -605,6 +666,7 @@ export default function HomePage() {
             nodes={nodes}
             edges={edges}
             nodeTypes={{ collectionNode: CollectionNode }}
+            edgeTypes={{ custom: CustomEdge }}
             onNodesChange={onNodesChange}
             onConnect={onConnect}
             onPaneContextMenu={handleEmptyAreaContextMenu}
@@ -656,6 +718,7 @@ export default function HomePage() {
           onAddField={handleAddField}
           onEditCollection={handleEditCollection}
           onCreateCollection={handleCreateCollection}
+          onGenerateCode={handleGenerateCode}
         />
       )}
 
@@ -726,6 +789,13 @@ export default function HomePage() {
         position={editCollectionModal.position}
         onClose={handleCloseEditCollection}
         onSave={handleEditCollectionSubmit}
+      />
+
+      {/* Code Sidebar */}
+      <CodeSidebar
+        isOpen={codeSidebar.isOpen}
+        selectedCollectionId={codeSidebar.selectedCollectionId}
+        onClose={handleCloseCodeSidebar}
       />
     </div>
   );

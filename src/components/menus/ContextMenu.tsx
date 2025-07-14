@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
-import { Trash2, Copy, Plus, Edit3 } from "lucide-react";
+import { Trash2, Copy, Plus, Edit3, Code2 } from "lucide-react";
 import type { ContextMenuProps } from "@/types";
 
 export default function ContextMenu({
@@ -17,6 +17,7 @@ export default function ContextMenu({
   onAddField,
   onEditCollection,
   onCreateCollection,
+  onGenerateCode,
 }: ContextMenuProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -123,6 +124,20 @@ export default function ContextMenu({
             >
               <Edit3 className="w-3 h-3 mr-2" />
               Edit Collection
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`w-full justify-start px-2 py-1.5 text-sm ${
+                isDark
+                  ? "hover:bg-gray-700 text-white"
+                  : "hover:bg-gray-100 text-gray-900"
+              }`}
+              onClick={() => handleAction(() => onGenerateCode?.(collectionId))}
+            >
+              <Code2 className="w-3 h-3 mr-2" />
+              Generate Code
             </Button>
 
             <Button

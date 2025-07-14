@@ -12,6 +12,10 @@ export type Field = {
     required: boolean;
     options?: string[]; // for select fields, etc.
     defaultValue?: any; // default value for the field
+    unique?: boolean; // field uniqueness constraint
+    index?: boolean; // field indexing
+    ref?: string; // reference to another collection (for objectId)
+    arrayType?: string; // type of array elements (for array fields)
     // Connection tracking for objectId fields
     connections?: string[]; // Array of edge IDs that connect to this field
 };
@@ -54,6 +58,7 @@ export type SchemaState = {
     addField: (collectionId: string, field: Field) => void;
     removeField: (collectionId: string, fieldIndex: number) => void;
     updateField: (collectionId: string, fieldIndex: number, field: Field) => void;
+    reorderFields: (collectionId: string, sourceIndex: number, destinationIndex: number) => void;
     updateCollectionPosition: (id: string, position: { x: number; y: number }) => void;
     // Connection management
     addConnection: (connection: Omit<FieldConnection, 'id'>) => void;
@@ -158,6 +163,7 @@ export type ContextMenuProps = {
     onAddField: (id: string, position?: Position) => void;
     onEditCollection?: (id: string, position?: Position) => void;
     onCreateCollection?: (position?: Position) => void;
+    onGenerateCode?: (id: string) => void;
 };
 
 export type FieldContextMenuProps = {

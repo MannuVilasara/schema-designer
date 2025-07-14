@@ -39,6 +39,33 @@ export default function AddFieldModal({
   const [fieldName, setFieldName] = useState("");
   const [fieldType, setFieldType] = useState("string");
   const [isRequired, setIsRequired] = useState(false);
+  const [nameError, setNameError] = useState("");
+
+  // Validate field name
+  const validateFieldName = (name: string) => {
+    if (name.includes(" ")) {
+      setNameError("Field name cannot contain spaces");
+      return false;
+    }
+    if (name && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+      setNameError(
+        "Field name must start with a letter or underscore and contain only letters, numbers, and underscores"
+      );
+      return false;
+    }
+    setNameError("");
+    return true;
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFieldName(value);
+    if (value.trim()) {
+      validateFieldName(value.trim());
+    } else {
+      setNameError("");
+    }
+  };
 
   // Calculate modal position near the collection
   const getModalStyle = () => {
@@ -74,10 +101,11 @@ export default function AddFieldModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fieldName.trim()) return;
+    const trimmedName = fieldName.trim();
+    if (!trimmedName || !validateFieldName(trimmedName)) return;
 
     onAddField({
-      name: fieldName.trim(),
+      name: trimmedName,
       type: fieldType,
       required: isRequired,
     });
@@ -86,6 +114,7 @@ export default function AddFieldModal({
     setFieldName("");
     setFieldType("string");
     setIsRequired(false);
+    setNameError("");
     onClose();
   };
 
@@ -93,6 +122,7 @@ export default function AddFieldModal({
     setFieldName("");
     setFieldType("string");
     setIsRequired(false);
+    setNameError("");
     onClose();
   };
 
@@ -169,11 +199,16 @@ export default function AddFieldModal({
                 id="fieldName"
                 type="text"
                 value={fieldName}
-                onChange={(e) => setFieldName(e.target.value)}
-                placeholder="Enter field name"
-                className={isDark ? "bg-gray-700 border-gray-600" : ""}
+                onChange={handleNameChange}
+                placeholder="Enter field name (no spaces)"
+                className={`${isDark ? "bg-gray-700 border-gray-600" : ""} ${
+                  nameError ? "border-red-500" : ""
+                }`}
                 autoFocus
               />
+              {nameError && (
+                <p className="text-red-500 text-xs mt-1">{nameError}</p>
+              )}
             </div>
 
             <div>
@@ -219,7 +254,7 @@ export default function AddFieldModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={!fieldName.trim()}
+                disabled={!fieldName.trim() || !!nameError}
               >
                 Add Field
               </Button>

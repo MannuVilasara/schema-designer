@@ -22,6 +22,33 @@ export default function CreateCollectionModal({
   const [includeTimestamps, setIncludeTimestamps] = useState(true);
   const [includeCreatedAt, setIncludeCreatedAt] = useState(true);
   const [includeUpdatedAt, setIncludeUpdatedAt] = useState(true);
+  const [nameError, setNameError] = useState("");
+
+  // Validate collection name
+  const validateCollectionName = (name: string) => {
+    if (name.includes(" ")) {
+      setNameError("Collection name cannot contain spaces");
+      return false;
+    }
+    if (name && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+      setNameError(
+        "Collection name must start with a letter or underscore and contain only letters, numbers, and underscores"
+      );
+      return false;
+    }
+    setNameError("");
+    return true;
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCollectionName(value);
+    if (value.trim()) {
+      validateCollectionName(value.trim());
+    } else {
+      setNameError("");
+    }
+  };
 
   // Calculate modal position on canvas
   const getModalStyle = () => {
@@ -57,9 +84,10 @@ export default function CreateCollectionModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!collectionName.trim()) return;
+    const trimmedName = collectionName.trim();
+    if (!trimmedName || !validateCollectionName(trimmedName)) return;
 
-    onCreateCollection(collectionName.trim(), {
+    onCreateCollection(trimmedName, {
       includeTimestamps,
       includeCreatedAt: includeTimestamps ? includeCreatedAt : false,
       includeUpdatedAt: includeTimestamps ? includeUpdatedAt : false,
@@ -70,6 +98,7 @@ export default function CreateCollectionModal({
     setIncludeTimestamps(true);
     setIncludeCreatedAt(true);
     setIncludeUpdatedAt(true);
+    setNameError("");
     onClose();
   };
 
@@ -78,6 +107,7 @@ export default function CreateCollectionModal({
     setIncludeTimestamps(true);
     setIncludeCreatedAt(true);
     setIncludeUpdatedAt(true);
+    setNameError("");
     onClose();
   };
 
@@ -152,11 +182,16 @@ export default function CreateCollectionModal({
                 id="collectionName"
                 type="text"
                 value={collectionName}
-                onChange={(e) => setCollectionName(e.target.value)}
-                placeholder="Enter collection name"
-                className={isDark ? "bg-gray-700 border-gray-600" : ""}
+                onChange={handleNameChange}
+                placeholder="Enter collection name (no spaces)"
+                className={`${isDark ? "bg-gray-700 border-gray-600" : ""} ${
+                  nameError ? "border-red-500" : ""
+                }`}
                 autoFocus
               />
+              {nameError && (
+                <p className="text-red-500 text-xs mt-1">{nameError}</p>
+              )}
             </div>
 
             {/* Timestamp Options */}
@@ -237,7 +272,7 @@ export default function CreateCollectionModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={!collectionName.trim()}
+                disabled={!collectionName.trim() || !!nameError}
               >
                 Create
               </Button>

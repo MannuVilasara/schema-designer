@@ -19,10 +19,38 @@ export default function EditCollectionModal({
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [collectionName, setCollectionName] = useState("");
+  const [nameError, setNameError] = useState("");
+
+  // Validate collection name
+  const validateCollectionName = (name: string) => {
+    if (name.includes(" ")) {
+      setNameError("Collection name cannot contain spaces");
+      return false;
+    }
+    if (name && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+      setNameError(
+        "Collection name must start with a letter or underscore and contain only letters, numbers, and underscores"
+      );
+      return false;
+    }
+    setNameError("");
+    return true;
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCollectionName(value);
+    if (value.trim()) {
+      validateCollectionName(value.trim());
+    } else {
+      setNameError("");
+    }
+  };
 
   useEffect(() => {
     if (collection) {
       setCollectionName(collection.name);
+      setNameError(""); // Reset error when collection changes
     }
   }, [collection]);
 
@@ -56,8 +84,9 @@ export default function EditCollectionModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (collectionName.trim() && collection) {
-      onSave(collection.id, collectionName.trim());
+    const trimmedName = collectionName.trim();
+    if (trimmedName && collection && validateCollectionName(trimmedName)) {
+      onSave(collection.id, trimmedName);
       onClose();
     }
   };
@@ -106,11 +135,13 @@ export default function EditCollectionModal({
               id="collectionName"
               type="text"
               value={collectionName}
-              onChange={(e) => setCollectionName(e.target.value)}
-              placeholder="Enter collection name"
+              onChange={handleNameChange}
+              placeholder="Enter collection name (no spaces)"
               required
               autoFocus
+              className={nameError ? "border-red-500" : ""}
             />
+            {nameError && <p className="text-red-500 text-xs">{nameError}</p>}
           </div>
 
           <div className="space-y-3">
@@ -142,7 +173,11 @@ export default function EditCollectionModal({
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1">
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={!collectionName.trim() || !!nameError}
+            >
               Save Changes
             </Button>
           </div>

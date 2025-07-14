@@ -2,6 +2,25 @@ import { create } from 'zustand';
 import type { Field, Collection, SchemaState, FieldConnection } from '@/types';
 import { persist, devtools } from 'zustand/middleware';
 
+// Helper function to ensure timestamp fields are always at the end
+const organizeFields = (fields: Field[]): Field[] => {
+    const nonTimestampFields = fields.filter(field =>
+        field.name !== 'createdAt' && field.name !== 'updatedAt'
+    );
+    const timestampFields = fields.filter(field =>
+        field.name === 'createdAt' || field.name === 'updatedAt'
+    );
+
+    // Sort timestamp fields to ensure consistent order: createdAt first, then updatedAt
+    timestampFields.sort((a, b) => {
+        if (a.name === 'createdAt') return -1;
+        if (b.name === 'createdAt') return 1;
+        return 0;
+    });
+
+    return [...nonTimestampFields, ...timestampFields];
+};
+
 export const useSchemaStore = create<SchemaState>()(
     persist(
         (set, get) => ({
@@ -43,7 +62,7 @@ export const useSchemaStore = create<SchemaState>()(
                             {
                                 id: crypto.randomUUID(),
                                 name,
-                                fields: baseFields,
+                                fields: organizeFields(baseFields),
                                 position: { x: 100 + state.collections.length * 220, y: 100 },
                                 createdAt: now,
                                 updatedAt: now,
@@ -61,10 +80,22 @@ export const useSchemaStore = create<SchemaState>()(
                     const collectionToDuplicate = state.collections.find((col) => col.id === id);
                     if (!collectionToDuplicate) return state;
 
+                    // Generate a unique name by checking existing names
+                    let baseName = collectionToDuplicate.name;
+                    let newName = `${baseName}_copy`;
+                    let counter = 1;
+
+                    // Check if the name already exists and increment counter if needed
+                    while (state.collections.some(col => col.name === newName)) {
+                        counter++;
+                        newName = `${baseName}_copy${counter}`;
+                    }
+
                     const newCollection = {
                         ...collectionToDuplicate,
                         id: crypto.randomUUID(),
-                        name: `${collectionToDuplicate.name} Copy`,
+                        name: newName,
+                        fields: organizeFields(collectionToDuplicate.fields),
                         position: {
                             x: collectionToDuplicate.position?.x ? collectionToDuplicate.position.x + 50 : 150,
                             y: collectionToDuplicate.position?.y ? collectionToDuplicate.position.y + 50 : 150
@@ -87,7 +118,7 @@ export const useSchemaStore = create<SchemaState>()(
                 set((state) => ({
                     collections: state.collections.map((col) =>
                         col.id === collectionId
-                            ? { ...col, fields: [...col.fields, field] }
+                            ? { ...col, fields: organizeFields([...col.fields, field]) }
                             : col
                     ),
                 })),
@@ -97,7 +128,7 @@ export const useSchemaStore = create<SchemaState>()(
                         col.id === collectionId
                             ? {
                                 ...col,
-                                fields: col.fields.filter((_, index) => index !== fieldIndex)
+                                fields: organizeFields(col.fields.filter((_, index) => index !== fieldIndex))
                             }
                             : col
                     ),
@@ -108,12 +139,61 @@ export const useSchemaStore = create<SchemaState>()(
                         col.id === collectionId
                             ? {
                                 ...col,
-                                fields: col.fields.map((f, index) =>
+                                fields: organizeFields(col.fields.map((f, index) =>
                                     index === fieldIndex ? field : f
-                                )
+                                ))
                             }
                             : col
                     ),
+                })),
+            reorderFields: (collectionId, sourceIndex, destinationIndex) =>
+                set((state) => ({
+                    collections: state.collections.map((col) => {
+                        if (col.id !== collectionId) return col;
+
+                        const fields = [...col.fields];
+                        const sourceField = fields[sourceIndex];
+                        const destField = fields[destinationIndex];
+
+                        // Prevent moving timestamp fields or moving fields to timestamp positions
+                        if (sourceField.name === 'createdAt' || sourceField.name === 'updatedAt' ||
+                            destField?.name === 'createdAt' || destField?.name === 'updatedAt') {
+                            return col; // Don't allow reordering timestamp fields
+                        }
+
+                        // Only allow reordering within non-timestamp fields
+                        const nonTimestampFields = fields.filter(field =>
+                            field.name !== 'createdAt' && field.name !== 'updatedAt'
+                        );
+                        const timestampFields = fields.filter(field =>
+                            field.name === 'createdAt' || field.name === 'updatedAt'
+                        );
+
+                        // Find the real indices within non-timestamp fields
+                        const sourceNonTimestampIndex = nonTimestampFields.findIndex(f => f === sourceField);
+                        const destNonTimestampIndex = nonTimestampFields.findIndex(f => f === destField);
+
+                        if (sourceNonTimestampIndex === -1 || destNonTimestampIndex === -1) {
+                            return col; // Invalid indices
+                        }
+
+                        // Reorder within non-timestamp fields
+                        const reorderedNonTimestampFields = [...nonTimestampFields];
+                        const [removed] = reorderedNonTimestampFields.splice(sourceNonTimestampIndex, 1);
+                        reorderedNonTimestampFields.splice(destNonTimestampIndex, 0, removed);
+
+                        // Sort timestamp fields to maintain order
+                        timestampFields.sort((a, b) => {
+                            if (a.name === 'createdAt') return -1;
+                            if (b.name === 'createdAt') return 1;
+                            return 0;
+                        });
+
+                        return {
+                            ...col,
+                            fields: [...reorderedNonTimestampFields, ...timestampFields]
+                        };
+                    })
                 })),
             updateCollectionPosition: (id, position) =>
                 set((state) => ({

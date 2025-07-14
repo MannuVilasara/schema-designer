@@ -28,12 +28,40 @@ export default function EditFieldModal({
   const [fieldName, setFieldName] = useState("");
   const [fieldType, setFieldType] = useState("string");
   const [isRequired, setIsRequired] = useState(false);
+  const [nameError, setNameError] = useState("");
+
+  // Validate field name
+  const validateFieldName = (name: string) => {
+    if (name.includes(" ")) {
+      setNameError("Field name cannot contain spaces");
+      return false;
+    }
+    if (name && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+      setNameError(
+        "Field name must start with a letter or underscore and contain only letters, numbers, and underscores"
+      );
+      return false;
+    }
+    setNameError("");
+    return true;
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFieldName(value);
+    if (value.trim()) {
+      validateFieldName(value.trim());
+    } else {
+      setNameError("");
+    }
+  };
 
   useEffect(() => {
     if (field) {
       setFieldName(field.name);
       setFieldType(field.type);
       setIsRequired(field.required);
+      setNameError(""); // Reset error when field changes
     }
   }, [field]);
 
@@ -66,9 +94,10 @@ export default function EditFieldModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (fieldName.trim()) {
+    const trimmedName = fieldName.trim();
+    if (trimmedName && validateFieldName(trimmedName)) {
       onSave({
-        name: fieldName.trim(),
+        name: trimmedName,
         type: fieldType,
         required: isRequired,
       });
@@ -118,16 +147,21 @@ export default function EditFieldModal({
               id="fieldName"
               type="text"
               value={fieldName}
-              onChange={(e) => setFieldName(e.target.value)}
-              placeholder="Enter field name"
+              onChange={handleNameChange}
+              placeholder="Enter field name (no spaces)"
               required
               disabled={isIdField}
-              className={isIdField ? "opacity-50 cursor-not-allowed" : ""}
+              className={`${isIdField ? "opacity-50 cursor-not-allowed" : ""} ${
+                nameError ? "border-red-500" : ""
+              }`}
             />
             {isIdField && (
               <p className="text-xs text-gray-500">
                 The _id field name cannot be changed
               </p>
+            )}
+            {nameError && !isIdField && (
+              <p className="text-red-500 text-xs">{nameError}</p>
             )}
           </div>
 
@@ -187,7 +221,11 @@ export default function EditFieldModal({
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1">
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={!fieldName.trim() || (!!nameError && !isIdField)}
+            >
               Save Changes
             </Button>
           </div>
