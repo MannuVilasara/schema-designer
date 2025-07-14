@@ -37,6 +37,8 @@ export default function Dock() {
   const removeCollection = useSchemaStore((s) => s.removeCollection);
   const duplicateCollection = useSchemaStore((s) => s.duplicateCollection);
   const reorderFields = useSchemaStore((s) => s.reorderFields);
+  const leftSidebarDocked = useSchemaStore((s) => s.leftSidebarDocked);
+  const setLeftSidebarDocked = useSchemaStore((s) => s.setLeftSidebarDocked);
   const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -45,7 +47,6 @@ export default function Dock() {
   const [dockWidth, setDockWidth] = useState(320);
   const [isResizing, setIsResizing] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDocked, setIsDocked] = useState(true);
 
   const dragControls = useDragControls();
   const dockRef = useRef<HTMLDivElement>(null);
@@ -321,7 +322,7 @@ export default function Dock() {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !dockRef.current) return;
 
-      if (isDocked) {
+      if (leftSidebarDocked) {
         const newWidth = e.clientX;
         setDockWidth(
           Math.min(
@@ -349,16 +350,16 @@ export default function Dock() {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isResizing, isDocked, MIN_WIDTH]);
+  }, [isResizing, leftSidebarDocked, MIN_WIDTH]);
 
   const handleUndock = () => {
-    setIsDocked(false);
+    setLeftSidebarDocked(false);
     setPosition({ x: 50, y: 50 });
     toast.success("Collections panel undocked");
   };
 
   const handleDock = () => {
-    setIsDocked(true);
+    setLeftSidebarDocked(true);
     setPosition({ x: 0, y: 0 });
     toast.success("Collections panel docked to left");
   };
@@ -366,7 +367,7 @@ export default function Dock() {
   const handleReset = () => {
     setDockWidth(320);
     setPosition({ x: 0, y: 0 });
-    setIsDocked(true);
+    setLeftSidebarDocked(true);
     setIsMinimized(false);
     toast.success("Collections panel reset");
   };
@@ -398,7 +399,7 @@ export default function Dock() {
       <AnimatePresence>
         <motion.div
           ref={dockRef}
-          drag={!isDocked}
+          drag={!leftSidebarDocked}
           dragControls={dragControls}
           dragMomentum={false}
           dragElastic={0}
@@ -413,17 +414,17 @@ export default function Dock() {
                 : 600,
           }}
           onDragEnd={(_, info) => {
-            if (!isDocked) {
+            if (!leftSidebarDocked) {
               setPosition((prev) => ({
                 x: prev.x + info.offset.x,
                 y: prev.y + info.offset.y,
               }));
             }
           }}
-          initial={isDocked ? { x: "-100%" } : false}
-          animate={isDocked ? { x: 0 } : dockVariants.floating}
+          initial={leftSidebarDocked ? { x: "-100%" } : false}
+          animate={leftSidebarDocked ? { x: 0 } : dockVariants.floating}
           exit={{
-            x: isDocked ? "-100%" : position.x - dockWidth,
+            x: leftSidebarDocked ? "-100%" : position.x - dockWidth,
             opacity: 0,
           }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
@@ -431,7 +432,7 @@ export default function Dock() {
             isDark
               ? "bg-gray-900/95 border-gray-700"
               : "bg-white/95 border-gray-200"
-          } ${isDocked ? "rounded-none rounded-r-lg" : "rounded-lg"}`}
+          } ${leftSidebarDocked ? "rounded-none rounded-r-lg" : "rounded-lg"}`}
           style={{
             width: dockWidth,
             minWidth: MIN_WIDTH,
@@ -440,7 +441,7 @@ export default function Dock() {
           onClick={closeAllMenus}
         >
           {/* Resize handle for docked mode */}
-          {isDocked && (
+          {leftSidebarDocked && (
             <div
               ref={resizeRef}
               className={`absolute right-0 top-0 w-1 h-full cursor-col-resize hover:w-2 transition-all duration-200 ${
@@ -465,7 +466,7 @@ export default function Dock() {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                {!isDocked && (
+                {!leftSidebarDocked && (
                   <button
                     onPointerDown={(e) => dragControls.start(e)}
                     className={`cursor-move p-1 rounded hover:bg-opacity-20 ${
@@ -503,7 +504,7 @@ export default function Dock() {
                   )}
                 </Button>
 
-                {isDocked ? (
+                {leftSidebarDocked ? (
                   <Button
                     variant="ghost"
                     size="sm"

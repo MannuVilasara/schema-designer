@@ -47,6 +47,12 @@ export type Position = { x: number; y: number };
 export type SchemaState = {
     collections: Collection[];
     connections: FieldConnection[]; // Store all field connections
+    leftSidebarDocked: boolean; // UI state for left sidebar
+
+    // UI state management
+    setLeftSidebarDocked: (docked: boolean) => void;
+
+    // Collection management
     addCollection: (name: string, options?: {
         includeTimestamps: boolean;
         includeCreatedAt: boolean;

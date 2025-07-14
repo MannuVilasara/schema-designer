@@ -26,6 +26,10 @@ export const useSchemaStore = create<SchemaState>()(
         (set, get) => ({
             collections: [],
             connections: [],
+            leftSidebarDocked: true,
+
+            // UI state management
+            setLeftSidebarDocked: (docked) => set({ leftSidebarDocked: docked }),
             addCollection: (name, options) => {
                 set((state) => {
                     const baseFields: Field[] = [];
