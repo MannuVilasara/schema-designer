@@ -22,7 +22,7 @@ import { Download, Moon, Sun, Trash2, Upload } from "lucide-react";
 import { useTheme } from "next-themes";
 import toast from "react-hot-toast";
 
-import "./BottomDock.css";
+import "@/styles/BottomDock.css"; // Ensure this path is correct
 
 export type DockItemData = {
   icon: React.ReactNode;
