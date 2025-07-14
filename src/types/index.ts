@@ -33,10 +33,10 @@ export type Collection = {
 // Connection/Reference types
 export type FieldConnection = {
     id: string; // Unique edge ID
-    sourceCollectionId: string;
-    sourceFieldIndex: number;
-    targetCollectionId: string;
-    targetFieldIndex: number;
+    sourceCollectionName: string;
+    sourceFieldName: string;
+    targetCollectionName: string;
+    targetFieldName: string;
     type: 'reference'; // Type of connection (reference, embed, etc.)
 };
 
@@ -63,7 +63,7 @@ export type SchemaState = {
     // Connection management
     addConnection: (connection: Omit<FieldConnection, 'id'>) => void;
     removeConnection: (connectionId: string) => void;
-    getFieldConnections: (collectionId: string, fieldIndex: number) => FieldConnection[];
+    getFieldConnections: (collectionName: string, fieldName: string) => FieldConnection[];
     // Import/Export and storage
     exportSchema: () => string;
     importSchema: (schemaData: string) => void;

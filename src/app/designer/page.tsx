@@ -500,7 +500,7 @@ export default function HomePage() {
   const edges: Edge[] = useMemo(() => {
     // Group connections by source-target pair to handle overlapping
     const connectionGroups = connections.reduce((groups, connection) => {
-      const key = `${connection.sourceCollectionId}-${connection.targetCollectionId}`;
+      const key = `${connection.sourceCollectionName}-${connection.targetCollectionName}`;
       if (!groups[key]) {
         groups[key] = [];
       }
@@ -508,54 +508,76 @@ export default function HomePage() {
       return groups;
     }, {} as Record<string, typeof connections>);
 
-    return connections.map((connection, index) => {
-      const groupKey = `${connection.sourceCollectionId}-${connection.targetCollectionId}`;
-      const group = connectionGroups[groupKey];
-      const connectionIndex = group.findIndex((c) => c.id === connection.id);
-      const totalInGroup = group.length;
+    return connections
+      .map((connection, index) => {
+        const groupKey = `${connection.sourceCollectionName}-${connection.targetCollectionName}`;
+        const group = connectionGroups[groupKey];
+        const connectionIndex = group.findIndex((c) => c.id === connection.id);
+        const totalInGroup = group.length;
 
-      // Calculate offset for multiple connections between same nodes
-      let pathOptions = {};
-      if (totalInGroup > 1) {
-        // Create more pronounced spacing for multiple connections
-        const baseOffset = 40;
-        const spacing = Math.min(80, baseOffset + (totalInGroup - 2) * 20);
-        const offset = (connectionIndex - (totalInGroup - 1) / 2) * spacing;
+        // Find the collection IDs from names
+        const sourceCollection = collections.find(
+          (c) => c.name === connection.sourceCollectionName
+        );
+        const targetCollection = collections.find(
+          (c) => c.name === connection.targetCollectionName
+        );
 
-        pathOptions = {
-          offset: offset,
-          borderRadius: Math.abs(offset) + 30,
-          curvature: 0.2 + Math.abs(offset) * 0.005,
+        if (!sourceCollection || !targetCollection) {
+          return null;
+        }
+
+        // Find field indices from names for handle IDs
+        const sourceFieldIndex = sourceCollection.fields.findIndex(
+          (f) => f.name === connection.sourceFieldName
+        );
+        const targetFieldIndex = targetCollection.fields.findIndex(
+          (f) => f.name === connection.targetFieldName
+        );
+
+        // Calculate offset for multiple connections between same nodes
+        let pathOptions = {};
+        if (totalInGroup > 1) {
+          // Create more pronounced spacing for multiple connections
+          const baseOffset = 40;
+          const spacing = Math.min(80, baseOffset + (totalInGroup - 2) * 20);
+          const offset = (connectionIndex - (totalInGroup - 1) / 2) * spacing;
+
+          pathOptions = {
+            offset: offset,
+            borderRadius: Math.abs(offset) + 30,
+            curvature: 0.2 + Math.abs(offset) * 0.005,
+          };
+        }
+
+        return {
+          id: connection.id,
+          source: sourceCollection.id,
+          target: targetCollection.id,
+          sourceHandle: `${sourceCollection.id}-field-${sourceFieldIndex}-source`,
+          targetHandle: `${targetCollection.id}-field-${targetFieldIndex}-target`,
+          type: totalInGroup > 1 ? "custom" : "default",
+          animated: true,
+          style: {
+            stroke: isDark ? "#3b82f6" : "#2563eb",
+            strokeWidth: 2,
+          },
+          markerEnd: {
+            type: MarkerType.Arrow,
+            color: isDark ? "#3b82f6" : "#2563eb",
+          },
+          pathOptions,
+          data: {
+            sourceField: connection.sourceFieldName,
+            targetField: connection.targetFieldName,
+            connectionType: connection.type,
+            groupIndex: connectionIndex,
+            totalInGroup: totalInGroup,
+          },
         };
-      }
-
-      return {
-        id: connection.id,
-        source: connection.sourceCollectionId,
-        target: connection.targetCollectionId,
-        sourceHandle: `${connection.sourceCollectionId}-field-${connection.sourceFieldIndex}-source`,
-        targetHandle: `${connection.targetCollectionId}-field-${connection.targetFieldIndex}-target`,
-        type: totalInGroup > 1 ? "custom" : "default",
-        animated: true,
-        style: {
-          stroke: isDark ? "#3b82f6" : "#2563eb",
-          strokeWidth: 2,
-        },
-        markerEnd: {
-          type: MarkerType.Arrow,
-          color: isDark ? "#3b82f6" : "#2563eb",
-        },
-        pathOptions,
-        data: {
-          sourceField: connection.sourceFieldIndex,
-          targetField: connection.targetFieldIndex,
-          connectionType: connection.type,
-          groupIndex: connectionIndex,
-          totalInGroup: totalInGroup,
-        },
-      };
-    });
-  }, [connections, isDark]);
+      })
+      .filter((edge): edge is NonNullable<typeof edge> => edge !== null);
+  }, [connections, collections, isDark]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -619,8 +641,8 @@ export default function HomePage() {
       // - Other objectId fields can only have one connection
       if (sourceField.name !== "_id") {
         const sourceConnections = getFieldConnections(
-          sourceCollectionId,
-          sourceFieldIndex
+          sourceCollection.name,
+          sourceField.name
         );
         if (sourceConnections.length > 0) {
           return; // This field already has a connection
@@ -629,8 +651,8 @@ export default function HomePage() {
 
       if (targetField.name !== "_id") {
         const targetConnections = getFieldConnections(
-          targetCollectionId,
-          targetFieldIndex
+          targetCollection.name,
+          targetField.name
         );
         if (targetConnections.length > 0) {
           return; // This field already has a connection
@@ -639,10 +661,10 @@ export default function HomePage() {
 
       // Create the connection
       addConnection({
-        sourceCollectionId,
-        sourceFieldIndex,
-        targetCollectionId,
-        targetFieldIndex,
+        sourceCollectionName: sourceCollection.name,
+        sourceFieldName: sourceField.name,
+        targetCollectionName: targetCollection.name,
+        targetFieldName: targetField.name,
         type: "reference",
       });
 

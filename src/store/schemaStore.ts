@@ -215,11 +215,11 @@ export const useSchemaStore = create<SchemaState>()(
                         connections: [...state.connections, newConnection],
                         collections: state.collections.map((col) => {
                             // Update source field connections
-                            if (col.id === connectionData.sourceCollectionId) {
+                            if (col.name === connectionData.sourceCollectionName) {
                                 return {
                                     ...col,
-                                    fields: col.fields.map((field, index) =>
-                                        index === connectionData.sourceFieldIndex
+                                    fields: col.fields.map((field) =>
+                                        field.name === connectionData.sourceFieldName
                                             ? {
                                                 ...field,
                                                 connections: [...(field.connections || []), newConnection.id]
@@ -229,11 +229,11 @@ export const useSchemaStore = create<SchemaState>()(
                                 };
                             }
                             // Update target field connections
-                            if (col.id === connectionData.targetCollectionId) {
+                            if (col.name === connectionData.targetCollectionName) {
                                 return {
                                     ...col,
-                                    fields: col.fields.map((field, index) =>
-                                        index === connectionData.targetFieldIndex
+                                    fields: col.fields.map((field) =>
+                                        field.name === connectionData.targetFieldName
                                             ? {
                                                 ...field,
                                                 connections: [...(field.connections || []), newConnection.id]
@@ -257,11 +257,11 @@ export const useSchemaStore = create<SchemaState>()(
                         connections: state.connections.filter(conn => conn.id !== connectionId),
                         collections: state.collections.map((col) => {
                             // Remove connection from source field
-                            if (col.id === connectionToRemove.sourceCollectionId) {
+                            if (col.name === connectionToRemove.sourceCollectionName) {
                                 return {
                                     ...col,
-                                    fields: col.fields.map((field, index) =>
-                                        index === connectionToRemove.sourceFieldIndex
+                                    fields: col.fields.map((field) =>
+                                        field.name === connectionToRemove.sourceFieldName
                                             ? {
                                                 ...field,
                                                 connections: (field.connections || []).filter(id => id !== connectionId)
@@ -271,11 +271,11 @@ export const useSchemaStore = create<SchemaState>()(
                                 };
                             }
                             // Remove connection from target field
-                            if (col.id === connectionToRemove.targetCollectionId) {
+                            if (col.name === connectionToRemove.targetCollectionName) {
                                 return {
                                     ...col,
-                                    fields: col.fields.map((field, index) =>
-                                        index === connectionToRemove.targetFieldIndex
+                                    fields: col.fields.map((field) =>
+                                        field.name === connectionToRemove.targetFieldName
                                             ? {
                                                 ...field,
                                                 connections: (field.connections || []).filter(id => id !== connectionId)
@@ -289,11 +289,11 @@ export const useSchemaStore = create<SchemaState>()(
                     };
                 }),
 
-            getFieldConnections: (collectionId, fieldIndex) => {
+            getFieldConnections: (collectionName, fieldName) => {
                 const state = get();
                 return state.connections.filter(conn =>
-                    (conn.sourceCollectionId === collectionId && conn.sourceFieldIndex === fieldIndex) ||
-                    (conn.targetCollectionId === collectionId && conn.targetFieldIndex === fieldIndex)
+                    (conn.sourceCollectionName === collectionName && conn.sourceFieldName === fieldName) ||
+                    (conn.targetCollectionName === collectionName && conn.targetFieldName === fieldName)
                 );
             },
 

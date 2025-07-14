@@ -27,7 +27,7 @@ interface FieldItemProps {
   isDark: boolean;
   data: any;
   getFieldIcon: (type: string) => React.ReactNode;
-  getFieldConnections: (collectionId: string, fieldIndex: number) => any[];
+  getFieldConnections: (collectionName: string, fieldName: string) => any[];
   handleClick: () => void;
   handleMouseDown: (e: React.MouseEvent) => void;
   handleFieldContextMenu: (
@@ -63,7 +63,7 @@ function FieldItem({
 }: FieldItemProps) {
   const isIdField = field.name === "_id";
   const isObjectIdField = field.type === "objectId";
-  const fieldConnections = getFieldConnections(data.id, index);
+  const fieldConnections = getFieldConnections(data.name, field.name);
   const hasConnections = fieldConnections.length > 0;
   const canAcceptMoreConnections = isIdField || fieldConnections.length === 0;
 
