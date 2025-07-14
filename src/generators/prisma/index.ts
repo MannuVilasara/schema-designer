@@ -1,87 +1,99 @@
-import { Collection, Field } from "@/types";
+import { Collection, Field } from '@/types';
 
 const PRISMA_TYPE_MAPPING = {
-    string: "String",
-    number: "Int",
-    boolean: "Boolean",
-    date: "DateTime",
-    objectId: "String", // Prisma uses String for MongoDB ObjectIds
-    array: "String[]", // Default to String array
-    mixed: "Json",
+	string: 'String',
+	number: 'Int',
+	boolean: 'Boolean',
+	date: 'DateTime',
+	objectId: 'String', // Prisma uses String for MongoDB ObjectIds
+	array: 'String[]', // Default to String array
+	mixed: 'Json',
 } as const;
 
-function generateFieldDefinition(field: Field, collections: Collection[]): string {
-    const { name, type, required, defaultValue, unique, index } = field;
+function generateFieldDefinition(
+	field: Field,
+	collections: Collection[]
+): string {
+	const { name, type, required, defaultValue, unique, index } = field;
 
-    let fieldDef = `  ${name}`;
-    let fieldType = "";
-    let attributes: string[] = [];
+	let fieldDef = `  ${name}`;
+	let fieldType = '';
+	let attributes: string[] = [];
 
-    // Handle field type
-    if (type === "objectId" && field.ref) {
-        // Find the referenced collection
-        const refCollection = collections.find(col => col.id === field.ref);
-        const refName = refCollection ? refCollection.name : field.ref;
-        fieldType = refName;
-        attributes.push(`@relation(fields: [${name}], references: [id])`);
-    } else if (type === "array" && field.arrayType) {
-        const arrayType = PRISMA_TYPE_MAPPING[field.arrayType as keyof typeof PRISMA_TYPE_MAPPING] || "String";
-        fieldType = `${arrayType}[]`;
-    } else {
-        fieldType = PRISMA_TYPE_MAPPING[type as keyof typeof PRISMA_TYPE_MAPPING] || "String";
-    }
+	// Handle field type
+	if (type === 'objectId' && field.ref) {
+		// Find the referenced collection
+		const refCollection = collections.find((col) => col.id === field.ref);
+		const refName = refCollection ? refCollection.name : field.ref;
+		fieldType = refName;
+		attributes.push(`@relation(fields: [${name}], references: [id])`);
+	} else if (type === 'array' && field.arrayType) {
+		const arrayType =
+			PRISMA_TYPE_MAPPING[
+				field.arrayType as keyof typeof PRISMA_TYPE_MAPPING
+			] || 'String';
+		fieldType = `${arrayType}[]`;
+	} else {
+		fieldType =
+			PRISMA_TYPE_MAPPING[type as keyof typeof PRISMA_TYPE_MAPPING] ||
+			'String';
+	}
 
-    // Add optional/required modifier
-    if (!required && type !== "objectId") {
-        fieldType += "?";
-    }
+	// Add optional/required modifier
+	if (!required && type !== 'objectId') {
+		fieldType += '?';
+	}
 
-    fieldDef += ` ${fieldType}`;
+	fieldDef += ` ${fieldType}`;
 
-    // Add field attributes
-    if (name === "id") {
-        attributes.push("@id @default(auto()) @map(\"_id\") @db.ObjectId");
-    } else if (unique) {
-        attributes.push("@unique");
-    }
+	// Add field attributes
+	if (name === 'id') {
+		attributes.push('@id @default(auto()) @map("_id") @db.ObjectId');
+	} else if (unique) {
+		attributes.push('@unique');
+	}
 
-    if (index && !unique) {
-        attributes.push("@@index([" + name + "])");
-    }
+	if (index && !unique) {
+		attributes.push('@@index([' + name + '])');
+	}
 
-    if (defaultValue) {
-        if (type === "string") {
-            attributes.push(`@default("${defaultValue}")`);
-        } else if (type === "date") {
-            attributes.push("@default(now())");
-        } else {
-            attributes.push(`@default(${defaultValue})`);
-        }
-    }
+	if (defaultValue) {
+		if (type === 'string') {
+			attributes.push(`@default("${defaultValue}")`);
+		} else if (type === 'date') {
+			attributes.push('@default(now())');
+		} else {
+			attributes.push(`@default(${defaultValue})`);
+		}
+	}
 
-    if (attributes.length > 0) {
-        fieldDef += ` ${attributes.join(" ")}`;
-    }
+	if (attributes.length > 0) {
+		fieldDef += ` ${attributes.join(' ')}`;
+	}
 
-    return fieldDef;
+	return fieldDef;
 }
 
-export function generatePrismaSchema(collection: Collection, allCollections: Collection[], connections: any[] = []): string {
-    const { name, fields } = collection;
+export function generatePrismaSchema(
+	collection: Collection,
+	allCollections: Collection[],
+	connections: any[] = []
+): string {
+	const { name, fields } = collection;
 
-    const fieldDefinitions = fields.map(field =>
-        generateFieldDefinition(field, allCollections)
-    ).join("\n");
+	const fieldDefinitions = fields
+		.map((field) => generateFieldDefinition(field, allCollections))
+		.join('\n');
 
-    // Generate relation fields for references
-    const relationFields = generateRelationFields(collection, allCollections);
+	// Generate relation fields for references
+	const relationFields = generateRelationFields(collection, allCollections);
 
-    const schemaCode = `// Prisma schema for ${name}
+	const schemaCode = `// Prisma schema for ${name}
 // Generated by MongoDB Schema Designer
 
 model ${name} {
 ${fieldDefinitions}
-${relationFields ? "\n" + relationFields : ""}
+${relationFields ? '\n' + relationFields : ''}
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -89,23 +101,28 @@ ${relationFields ? "\n" + relationFields : ""}
   @@map("${name.toLowerCase()}")
 }`;
 
-    return schemaCode;
+	return schemaCode;
 }
 
-function generateRelationFields(collection: Collection, allCollections: Collection[]): string {
-    const relationFields: string[] = [];
+function generateRelationFields(
+	collection: Collection,
+	allCollections: Collection[]
+): string {
+	const relationFields: string[] = [];
 
-    // Find fields that reference this collection
-    allCollections.forEach(otherCollection => {
-        if (otherCollection.id === collection.id) return;
+	// Find fields that reference this collection
+	allCollections.forEach((otherCollection) => {
+		if (otherCollection.id === collection.id) return;
 
-        otherCollection.fields.forEach(field => {
-            if (field.type === "objectId" && field.ref === collection.id) {
-                const relationName = `${otherCollection.name.toLowerCase()}s`;
-                relationFields.push(`  ${relationName} ${otherCollection.name}[]`);
-            }
-        });
-    });
+		otherCollection.fields.forEach((field) => {
+			if (field.type === 'objectId' && field.ref === collection.id) {
+				const relationName = `${otherCollection.name.toLowerCase()}s`;
+				relationFields.push(
+					`  ${relationName} ${otherCollection.name}[]`
+				);
+			}
+		});
+	});
 
-    return relationFields.join("\n");
+	return relationFields.join('\n');
 }

@@ -1,0 +1,20 @@
+node_modules/
+dist/
+build/
+coverage/
+.env
+*.log
+*.lock
+package-lock.json
+yarn.lock
+.next/
+out/
+public/
+tmp/
+.cache/
+.DS_Store
+# Ignore all minified files
+*.min.js
+*.min.css
+# Ignore all generated files
+*.generated.*
