@@ -627,7 +627,7 @@ export default function LandingPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              © 2025 MongoDB Schema Designer. Built with Next.js and ReactFlow.
+              © 2025 Manpreet Singh. Built with Next.js and ReactFlow.
             </motion.p>
           </div>
         </div>
