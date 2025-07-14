@@ -1,35 +1,33 @@
 "use client";
 
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ReactFlow, {
   Background,
-  Controls,
-  Node,
-  Edge,
-  NodeChange,
   Connection,
-  addEdge,
-  EdgeChange,
+  Controls,
+  Edge,
   MarkerType,
+  Node,
+  NodeChange,
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-import { useSchemaStore } from "@/store/schemaStore";
 import {
-  CollectionNode,
-  Dock,
-  BottomDock,
-  ContextMenu,
-  FieldContextMenu,
   AddFieldModal,
+  BottomDock,
+  CollectionNode,
   ConfirmDialog,
-  CreateCollectionModal,
-  EditFieldModal,
-  EditCollectionModal,
   ConfirmFieldDeleteDialog,
+  ContextMenu,
+  CreateCollectionModal,
+  Dock,
+  EditCollectionModal,
+  EditFieldModal,
+  FieldContextMenu,
 } from "@/components";
-import CodeSidebar from "@/components/layout/CodeSidebar";
 import CustomEdge from "@/components/CustomEdge";
+import CodeSidebar from "@/components/layout/CodeSidebar";
+import { useSchemaStore } from "@/store/schemaStore";
 import { useTheme } from "next-themes";
 import toast from "react-hot-toast";
 

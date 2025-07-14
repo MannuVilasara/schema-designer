@@ -1,6 +1,6 @@
+import type { Field, FieldConnection, SchemaState } from '@/types';
 import { create } from 'zustand';
-import type { Field, Collection, SchemaState, FieldConnection } from '@/types';
-import { persist, devtools } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 // Helper function to ensure timestamp fields are always at the end
 const organizeFields = (fields: Field[]): Field[] => {

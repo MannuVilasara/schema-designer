@@ -79,9 +79,13 @@ export default function CodeSidebar({
       if (!isResizing || !sidebarRef.current) return;
 
       if (isDocked) {
-        const newWidth = window.innerWidth - e.clientX;
+        const newWidth =
+          typeof window !== "undefined" ? window.innerWidth - e.clientX : 320;
         setSidebarWidth(
-          Math.min(Math.max(newWidth, 320), window.innerWidth * 0.8)
+          Math.min(
+            Math.max(newWidth, 320),
+            typeof window !== "undefined" ? window.innerWidth * 0.8 : 800
+          )
         );
       }
     };
@@ -134,7 +138,13 @@ export default function CodeSidebar({
 
   const handleUndock = () => {
     setIsDocked(false);
-    setPosition({ x: window.innerWidth - sidebarWidth - 50, y: 50 });
+    setPosition({
+      x:
+        typeof window !== "undefined"
+          ? window.innerWidth - sidebarWidth - 50
+          : 400,
+      y: 50,
+    });
   };
 
   const handleDock = () => {
@@ -185,9 +195,13 @@ export default function CodeSidebar({
           dragElastic={0}
           dragConstraints={{
             left: 0,
-            right: window.innerWidth - 320,
+            right:
+              typeof window !== "undefined" ? window.innerWidth - 320 : 800,
             top: 0,
-            bottom: window.innerHeight - (isMinimized ? 100 : 400),
+            bottom:
+              typeof window !== "undefined"
+                ? window.innerHeight - (isMinimized ? 100 : 400)
+                : 600,
           }}
           onDragEnd={(_, info) => {
             if (!isDocked) {

@@ -30,12 +30,18 @@ export default function FieldContextMenu({
     let finalY = y;
 
     // Adjust for right edge
-    if (x + menuWidth > window.innerWidth - padding) {
+    if (
+      typeof window !== "undefined" &&
+      x + menuWidth > window.innerWidth - padding
+    ) {
       finalX = x - menuWidth;
     }
 
     // Adjust for bottom edge
-    if (y + menuHeight > window.innerHeight - padding) {
+    if (
+      typeof window !== "undefined" &&
+      y + menuHeight > window.innerHeight - padding
+    ) {
       finalY = y - menuHeight;
     }
 

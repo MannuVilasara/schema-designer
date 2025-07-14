@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
-import { Moon, Sun, Download, Upload, Trash2 } from "lucide-react";
 import { useSchemaStore } from "@/store/schemaStore";
+import { Download, Moon, Sun, Trash2, Upload } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function BottomDock() {
