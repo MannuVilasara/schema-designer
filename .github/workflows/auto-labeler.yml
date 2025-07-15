@@ -1,0 +1,24 @@
+name: Auto Labeler
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  pull-requests: write
+  contents: read
+  issues: write
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Auto label PR
+        uses: MannuVilasara/auto-labeler@main
+
+      - name: Add labels to PR
+        run: |
+          echo "Labels added to the pull request."
