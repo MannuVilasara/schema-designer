@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { Handle, Position } from 'reactflow';
-import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import { useSchemaStore } from '@/store/schemaStore';
 import toast from 'react-hot-toast';
 import {
@@ -71,24 +71,25 @@ function FieldItem({
 	const canAcceptMoreConnections = isIdField || fieldConnections.length === 0;
 
 	return (
-		<div				className={`relative flex items-center justify-between py-2 px-2 rounded-md text-xs ${
-					isTimestampField
-						? 'cursor-default opacity-75'
-						: 'cursor-pointer'
-				} ${
-					isIdField
+		<div
+			className={`relative flex items-center justify-between py-2 px-2 rounded-md text-xs ${
+				isTimestampField
+					? 'cursor-default opacity-75'
+					: 'cursor-pointer'
+			} ${
+				isIdField
+					? isDark
+						? 'bg-blue-900/30 hover:bg-blue-900/50 border border-blue-700/50'
+						: 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
+					: isTimestampField
 						? isDark
-							? 'bg-blue-900/30 hover:bg-blue-900/50 border border-blue-700/50'
-							: 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
-						: isTimestampField
-							? isDark
-								? 'bg-amber-900/30 border border-amber-700/50'
-								: 'bg-amber-50 border border-amber-200'
-							: isDark
-								? 'bg-gray-700/50 hover:bg-gray-700'
-								: 'bg-gray-50 hover:bg-gray-100'
-				}`}
-				style={{ transition: 'none' }}
+							? 'bg-amber-900/30 border border-amber-700/50'
+							: 'bg-amber-50 border border-amber-200'
+						: isDark
+							? 'bg-gray-700/50 hover:bg-gray-700'
+							: 'bg-gray-50 hover:bg-gray-100'
+			}`}
+			style={{ transition: 'none' }}
 			onClick={handleClick}
 			onMouseDown={handleMouseDown}
 			onContextMenu={(e) => handleFieldContextMenu(e, index, field.name)}
@@ -253,8 +254,7 @@ function FieldItem({
 }
 
 export default function CollectionNode({ data }: CollectionNodeProps) {
-	const { resolvedTheme } = useTheme();
-	const [mounted, setMounted] = useState(false);
+	const { isDark } = useThemeContext();
 	const connections = useSchemaStore((state) => state.connections);
 	const getFieldConnections = useSchemaStore(
 		(state) => state.getFieldConnections
@@ -262,14 +262,7 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 	const removeConnection = useSchemaStore((state) => state.removeConnection);
 	const reorderFields = useSchemaStore((state) => state.reorderFields);
 
-	// Only run on client side after hydration
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	// Prevent hydration mismatch by using a consistent fallback
-	// Don't render theme-dependent classes until mounted
-	const isDark = mounted ? resolvedTheme === 'dark' : false;
+	// isDark is now provided by ThemeContext
 
 	// Calculate dynamic height based on field count
 	const getCollectionHeight = () => {
@@ -391,13 +384,15 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 		<div
 			className={`rounded-xl shadow-xl border min-w-64 max-w-80 cursor-pointer relative group ${
 				isDark
-					? 'bg-gray-800 border-gray-700 hover:border-blue-400 text-white shadow-gray-900/50'
-					: 'bg-white border-gray-300 hover:border-blue-500 text-gray-800 shadow-gray-500/30'
+					? 'border-gray-700 hover:border-blue-400 text-white shadow-gray-900/50'
+					: 'border-gray-300 hover:border-blue-500 text-gray-800 shadow-gray-500/30'
 			}`}
 			style={{
 				...dynamicStyles,
 				opacity: 1,
 				transition: 'none',
+				backgroundColor: isDark ? '#1f2937' : '#ffffff', // Force theme-based background with hex values
+				color: isDark ? '#ffffff' : '#1f2937', // Ensure text color is also forced
 			}}
 			onContextMenu={handleContextMenu}
 			onClick={handleClick}

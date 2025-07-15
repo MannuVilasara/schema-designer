@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,18 +23,13 @@ export default function EditFieldModal({
 	onClose,
 	onSave,
 }: EditFieldModalProps) {
-	const { resolvedTheme } = useTheme();
-	const [mounted, setMounted] = useState(false);
+	const { isDark } = useThemeContext();
 	const [fieldName, setFieldName] = useState('');
 	const [fieldType, setFieldType] = useState('string');
 	const [isRequired, setIsRequired] = useState(false);
 	const [nameError, setNameError] = useState('');
 
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	const isDark = mounted ? resolvedTheme === 'dark' : false;
+	// isDark is now provided by ThemeContext
 
 	// Validate field name
 	const validateFieldName = (name: string) => {

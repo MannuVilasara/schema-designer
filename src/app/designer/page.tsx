@@ -29,7 +29,7 @@ import {
 } from '@/components';
 import CustomEdge from '@/components/CustomEdge';
 import { useSchemaStore } from '@/store/schemaStore';
-import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import toast from 'react-hot-toast';
 
 export default function HomePage() {
@@ -52,13 +52,11 @@ export default function HomePage() {
 	const getFieldConnections = useSchemaStore(
 		(state) => state.getFieldConnections
 	);
-	const { resolvedTheme } = useTheme();
-	const [mounted, setMounted] = useState(false);
+	const { isDark } = useThemeContext();
 	const [scrollY, setScrollY] = useState(0);
 
 	// Only run on client side after hydration
 	useEffect(() => {
-		setMounted(true);
 	}, []);
 
 	useEffect(() => {
@@ -537,7 +535,7 @@ export default function HomePage() {
 	}, []);
 
 	// Prevent hydration mismatch by using fallback until mounted
-	const isDark = mounted ? resolvedTheme === 'dark' : false;
+	// isDark is now provided by ThemeContext
 
 	const edges: Edge[] = useMemo(() => {
 		// Group connections by source-target pair to handle overlapping

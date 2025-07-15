@@ -19,7 +19,7 @@ import React, {
 } from 'react';
 import { useSchemaStore } from '@/store/schemaStore';
 import { Download, Moon, Sun, Trash2, Upload } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import toast from 'react-hot-toast';
 
 import '@/styles/BottomDock.css'; // Ensure this path is correct
@@ -185,7 +185,7 @@ export default function BottomDock({
 	dockHeight = 120,
 	baseItemSize = 48,
 }: Omit<DockProps, 'items'>) {
-	const { theme, setTheme, resolvedTheme } = useTheme();
+	const { isDark, toggleTheme } = useThemeContext();
 	const [mounted, setMounted] = useState(false);
 	const [isVisible, setIsVisible] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -255,13 +255,7 @@ export default function BottomDock({
 		return () => window.removeEventListener('mousemove', handleMouseMove);
 	}, [mounted, mouseY]);
 
-	const isDark = mounted ? resolvedTheme === 'dark' : false;
-
-	const toggleTheme = () => {
-		const newTheme = theme === 'dark' ? 'light' : 'dark';
-		setTheme(newTheme);
-		toast.success(`Switched to ${newTheme} theme`);
-	};
+	// isDark and toggleTheme are now provided by ThemeContext
 
 	const handleExport = () => {
 		try {

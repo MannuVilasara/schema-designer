@@ -36,7 +36,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [isDark, mounted]);
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    
+    // Show toast notification
+    if (typeof window !== 'undefined') {
+      const toast = (window as any).toast;
+      if (toast && toast.success) {
+        toast.success(`Switched to ${newTheme ? 'dark' : 'light'} theme`);
+      }
+    }
   };
 
   // Show loading spinner during initial mount to prevent hydration mismatch

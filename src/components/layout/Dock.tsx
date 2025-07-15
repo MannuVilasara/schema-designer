@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import FieldContextMenu from '@/components/menus/FieldContextMenu';
 import ContextMenu from '@/components/menus/ContextMenu';
 import EditFieldModal from '@/components/modals/EditFieldModal';
@@ -39,7 +39,7 @@ export default function Dock() {
 	const reorderFields = useSchemaStore((s) => s.reorderFields);
 	const leftSidebarDocked = useSchemaStore((s) => s.leftSidebarDocked);
 	const setLeftSidebarDocked = useSchemaStore((s) => s.setLeftSidebarDocked);
-	const { theme, resolvedTheme } = useTheme();
+	const { isDark, toggleTheme } = useThemeContext();
 	const [mounted, setMounted] = useState(false);
 
 	// Enhanced draggable state management
@@ -101,7 +101,7 @@ export default function Dock() {
 		position: { x: number; y: number };
 	} | null>(null);
 
-	const isDark = mounted ? resolvedTheme === 'dark' : false;
+	// isDark is now provided by ThemeContext
 
 	// Minimum and maximum dock widths
 	const MIN_WIDTH = 320; // Fixed width
