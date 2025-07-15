@@ -32,16 +32,16 @@ export const DesignerPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
-      <div className="flex flex-col h-screen pt-16">
+      <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)', marginTop: '64px' }}>
         {/* Main Canvas Area */}
-        <div className="flex-1 relative overflow-hidden" style={{ border: '2px solid blue' }}>
-          <div className="absolute inset-0" style={{ border: '2px solid green' }}>
+        <div className="flex-1 relative overflow-hidden">
+          <div className="absolute inset-0">
             <DesignerCanvas />
           </div>
         </div>
 
-        {/* Dock - Temporarily commented out for debugging */}
-        {/* <Dock /> */}
+        {/* Dock - Re-enabled */}
+        <Dock />
       </div>
 
       {/* Hidden file input for import */}
