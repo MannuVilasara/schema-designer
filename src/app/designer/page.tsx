@@ -251,11 +251,23 @@ export default function HomePage() {
 		(changes: NodeChange[]) => {
 			changes.forEach((change) => {
 				if (change.type === 'position' && change.position) {
-					updateCollectionPosition(change.id, change.position);
+					// Ensure position is valid and node remains visible
+					const position = {
+						x: Math.max(0, change.position.x),
+						y: Math.max(0, change.position.y),
+					};
+					updateCollectionPosition(change.id, position);
+				} else if (change.type === 'dimensions' && change.dimensions) {
+					// Handle dimension changes to ensure proper rendering
+					const collection = collections.find(c => c.id === change.id);
+					if (collection) {
+						// Update position to ensure the node stays visible
+						updateCollectionPosition(change.id, collection.position || { x: 0, y: 0 });
+					}
 				}
 			});
 		},
-		[updateCollectionPosition]
+		[updateCollectionPosition, collections]
 	);
 
 	const closeContextMenu = useCallback(() => {

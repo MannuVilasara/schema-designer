@@ -85,11 +85,10 @@ function FieldItem({
 						? isDark
 							? 'bg-amber-900/30 border border-amber-700/50'
 							: 'bg-amber-50 border border-amber-200'
-						: isDark
-							? 'bg-gray-700/50 hover:bg-gray-700'
-							: 'bg-gray-50 hover:bg-gray-100'
+													: isDark
+								? 'bg-gray-700/50 hover:bg-gray-700'
+								: 'bg-gray-50 hover:bg-gray-100'
 			}`}
-			style={{ transition: 'none' }}
 			onClick={handleClick}
 			onMouseDown={handleMouseDown}
 			onContextMenu={(e) => handleFieldContextMenu(e, index, field.name)}
@@ -108,7 +107,6 @@ function FieldItem({
 								? 'opacity-30 cursor-not-allowed'
 								: 'opacity-40 hover:opacity-80'
 						}`}
-						style={{ transition: 'none' }}
 					>
 						<ChevronUp className="w-2 h-2" />
 					</button>
@@ -123,7 +121,6 @@ function FieldItem({
 								? 'opacity-30 cursor-not-allowed'
 								: 'opacity-40 hover:opacity-80'
 						}`}
-						style={{ transition: 'none' }}
 					>
 						<ChevronDown className="w-2 h-2" />
 					</button>
@@ -146,7 +143,6 @@ function FieldItem({
 					style={{
 						left: '-6px',
 						zIndex: 10,
-						transition: 'none',
 					}}
 					isConnectable={canAcceptMoreConnections}
 				/>
@@ -168,7 +164,6 @@ function FieldItem({
 					style={{
 						right: '-6px',
 						zIndex: 10,
-						transition: 'none',
 					}}
 					isConnectable={canAcceptMoreConnections}
 				/>
@@ -224,7 +219,6 @@ function FieldItem({
 									}
 									className="ml-1 p-0.5 rounded-full bg-red-500 hover:bg-red-600 text-white"
 									title="Remove connection"
-									style={{ transition: 'none' }}
 								>
 									<X className="w-2.5 h-2.5" />
 								</button>
@@ -384,15 +378,14 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 		<div
 			className={`rounded-xl shadow-xl border min-w-64 max-w-80 cursor-pointer relative group ${
 				isDark
-					? 'border-gray-700 hover:border-blue-400 text-white shadow-gray-900/50'
-					: 'border-gray-300 hover:border-blue-500 text-gray-800 shadow-gray-500/30'
+					? 'border-gray-700 hover:border-blue-400 text-white shadow-gray-900/50 bg-gray-800'
+					: 'border-gray-300 hover:border-blue-500 text-gray-800 shadow-gray-500/30 bg-white'
 			}`}
 			style={{
 				...dynamicStyles,
-				opacity: 1,
-				transition: 'none',
-				backgroundColor: isDark ? '#1f2937' : '#ffffff', // Force theme-based background with hex values
-				color: isDark ? '#ffffff' : '#1f2937', // Ensure text color is also forced
+				willChange: 'transform',
+				backfaceVisibility: 'hidden',
+				transform: 'translateZ(0)',
 			}}
 			onContextMenu={handleContextMenu}
 			onClick={handleClick}
@@ -411,7 +404,6 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 						? 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50' 
 						: 'bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5 opacity-70'
 				} group-hover:opacity-80`}
-					style={{ transition: 'none' }}
 				></div>
 				
 				<div className="relative z-10">

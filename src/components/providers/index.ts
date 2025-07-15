@@ -1,2 +1,2 @@
 // Provider components
-export { ThemeProvider } from './theme-provider';
+// ThemeProvider removed - using custom theme provider from contexts instead
