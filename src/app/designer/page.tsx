@@ -25,12 +25,11 @@ import {
 	EditFieldModal,
 	FieldContextMenu,
 	Navbar,
+	CodeGenerationModal,
 } from '@/components';
 import CustomEdge from '@/components/CustomEdge';
-import CodeSidebar from '@/components/layout/CodeSidebar';
 import { useSchemaStore } from '@/store/schemaStore';
 import { useTheme } from 'next-themes';
-import { useThemeContext } from '@/contexts/ThemeContext';
 import toast from 'react-hot-toast';
 
 export default function HomePage() {
@@ -53,8 +52,7 @@ export default function HomePage() {
 	const getFieldConnections = useSchemaStore(
 		(state) => state.getFieldConnections
 	);
-	const { theme, resolvedTheme } = useTheme();
-	const { isDark: isDarkMode } = useThemeContext();
+	const { resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 	const [scrollY, setScrollY] = useState(0);
 
@@ -962,8 +960,8 @@ export default function HomePage() {
 				onSave={handleEditCollectionSubmit}
 			/>
 
-			{/* Enhanced Code Sidebar */}
-			<CodeSidebar
+			{/* Enhanced Code Generation Modal */}
+			<CodeGenerationModal
 				isOpen={codeSidebar.isOpen}
 				selectedCollectionId={codeSidebar.selectedCollectionId}
 				onClose={handleCloseCodeSidebar}

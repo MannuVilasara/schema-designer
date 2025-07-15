@@ -5,3 +5,4 @@ export { default as EditFieldModal } from './EditFieldModal';
 export { default as EditCollectionModal } from './EditCollectionModal';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as ConfirmFieldDeleteDialog } from './ConfirmFieldDeleteDialog';
+export { default as CodeGenerationModal } from './CodeGenerationModal';

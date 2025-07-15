@@ -3,7 +3,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Handle, Position } from 'reactflow';
 import { useTheme } from 'next-themes';
-import { useThemeContext } from '@/contexts/ThemeContext';
 import { useSchemaStore } from '@/store/schemaStore';
 import toast from 'react-hot-toast';
 import {
@@ -249,8 +248,7 @@ function FieldItem({
 }
 
 export default function CollectionNode({ data }: CollectionNodeProps) {
-	const { theme, resolvedTheme } = useTheme();
-	const { isDark: isDarkTheme } = useThemeContext();
+	const { resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 	const connections = useSchemaStore((state) => state.connections);
 	const getFieldConnections = useSchemaStore(
@@ -264,7 +262,8 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 		setMounted(true);
 	}, []);
 
-	const isDark = mounted ? isDarkTheme : false;
+	// Prevent hydration mismatch by using a consistent fallback
+	const isDark = mounted ? resolvedTheme === 'dark' : false;
 
 	// Calculate dynamic height based on field count
 	const getCollectionHeight = () => {
@@ -384,10 +383,10 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 
 	return (
 		<div
-			className={`rounded-xl shadow-xl border backdrop-blur-sm min-w-64 max-w-80 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative group ${
+			className={`rounded-xl shadow-xl border min-w-64 max-w-80 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer relative group ${
 				isDark
-					? 'bg-gray-800/90 border-gray-700 hover:border-blue-400 text-white shadow-gray-900/20'
-					: 'bg-white/95 border-gray-200 hover:border-blue-400 text-gray-800 shadow-gray-500/20'
+					? 'bg-gray-800 border-gray-700 hover:border-blue-400 text-white shadow-gray-900/50'
+					: 'bg-white border-gray-300 hover:border-blue-500 text-gray-800 shadow-gray-500/30'
 			}`}
 			style={dynamicStyles}
 			onContextMenu={handleContextMenu}
@@ -397,11 +396,15 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 			{/* Enhanced Collection Header */}
 			<div
 				className={`px-4 py-4 border-b relative overflow-hidden ${
-					isDark ? 'border-gray-700' : 'border-gray-200'
+					isDark ? 'border-gray-700' : 'border-gray-300'
 				}`}
 			>
 				{/* Header Background Gradient */}
-				<div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50 group-hover:opacity-80 transition-opacity duration-300"></div>
+				<div className={`absolute inset-0 ${
+					isDark 
+						? 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50' 
+						: 'bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5 opacity-70'
+				} group-hover:opacity-80 transition-opacity duration-300`}></div>
 				
 				<div className="relative z-10">
 					<div className="flex items-center justify-center gap-2 mb-2">
