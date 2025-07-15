@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, X } from 'lucide-react';
@@ -12,8 +13,14 @@ export default function ConfirmFieldDeleteDialog({
 	onConfirm,
 	onCancel,
 }: ConfirmFieldDeleteDialogProps) {
-	const { theme } = useTheme();
-	const isDark = theme === 'dark';
+	const { resolvedTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	const isDark = mounted ? resolvedTheme === 'dark' : false;
 
 	const getModalStyle = () => {
 		if (!position) return {};

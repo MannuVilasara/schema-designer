@@ -117,36 +117,81 @@
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply bg-background text-foreground;
+		@apply bg-background text-foreground transition-colors duration-300;
+	}
+	html {
+		@apply bg-background transition-colors duration-300;
 	}
 }
 
-/* ReactFlow specific styles to prevent dragging issues */
+/* ReactFlow specific styles to prevent dragging issues and opacity flickering */
 .react-flow__node {
 	pointer-events: all !important;
+	opacity: 1 !important;
+	transition: none !important;
 }
 
 .react-flow__node.dragging {
 	z-index: 1000 !important;
 	pointer-events: all !important;
+	opacity: 1 !important;
+	transition: none !important;
 }
 
 .react-flow__node-collectionNode {
 	transition: none !important;
+	opacity: 1 !important;
 }
 
 .react-flow__node-collectionNode.dragging {
 	transition: none !important;
 	transform-origin: center !important;
+	opacity: 1 !important;
+}
+
+.react-flow__node-collectionNode.selected {
+	transition: none !important;
+	opacity: 1 !important;
+}
+
+/* Prevent opacity transitions on all ReactFlow nodes */
+.react-flow__nodes {
+	transition: none !important;
+}
+
+.react-flow__nodes > * {
+	transition: none !important;
+	opacity: 1 !important;
+}
+
+/* Additional fixes for node visibility during drag */
+.react-flow__node > div {
+	opacity: 1 !important;
+	transition: none !important;
+}
+
+.react-flow__node * {
+	transition: box-shadow 0.2s ease, border-color 0.2s ease !important;
 }
 
 /* Ensure handles remain visible during drag */
 .react-flow__handle {
 	pointer-events: all !important;
 	z-index: 1001 !important;
+	opacity: 1 !important;
 }
 
 /* Prevent selection interference */
 .react-flow__pane {
 	user-select: none;
+}
+
+/* Fix ReactFlow controls theme consistency */
+.react-flow__controls {
+	backdrop-filter: blur(8px) !important;
+}
+
+.react-flow__controls-button {
+	border: none !important;
+	background: transparent !important;
 }

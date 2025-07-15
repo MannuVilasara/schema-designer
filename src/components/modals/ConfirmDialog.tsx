@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import { AlertTriangle, Trash2 } from 'lucide-react';
@@ -13,8 +14,14 @@ export default function ConfirmDialog({
 	onConfirm,
 	onCancel,
 }: ConfirmDialogProps) {
-	const { theme } = useTheme();
-	const isDark = theme === 'dark';
+	const { resolvedTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	const isDark = mounted ? resolvedTheme === 'dark' : false;
 
 	if (!isOpen) return null;
 

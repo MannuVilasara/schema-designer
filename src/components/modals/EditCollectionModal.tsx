@@ -16,10 +16,16 @@ export default function EditCollectionModal({
 	onClose,
 	onSave,
 }: EditCollectionModalProps) {
-	const { theme } = useTheme();
-	const isDark = theme === 'dark';
+	const { resolvedTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
 	const [collectionName, setCollectionName] = useState('');
 	const [nameError, setNameError] = useState('');
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	const isDark = mounted ? resolvedTheme === 'dark' : false;
 
 	// Validate collection name
 	const validateCollectionName = (name: string) => {

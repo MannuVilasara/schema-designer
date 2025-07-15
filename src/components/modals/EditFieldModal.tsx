@@ -23,12 +23,18 @@ export default function EditFieldModal({
 	onClose,
 	onSave,
 }: EditFieldModalProps) {
-	const { theme } = useTheme();
-	const isDark = theme === 'dark';
+	const { resolvedTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
 	const [fieldName, setFieldName] = useState('');
 	const [fieldType, setFieldType] = useState('string');
 	const [isRequired, setIsRequired] = useState(false);
 	const [nameError, setNameError] = useState('');
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	const isDark = mounted ? resolvedTheme === 'dark' : false;
 
 	// Validate field name
 	const validateFieldName = (name: string) => {

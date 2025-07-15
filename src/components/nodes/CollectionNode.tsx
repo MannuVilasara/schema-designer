@@ -71,24 +71,24 @@ function FieldItem({
 	const canAcceptMoreConnections = isIdField || fieldConnections.length === 0;
 
 	return (
-		<div
-			className={`relative flex items-center justify-between py-2 px-2 rounded-md text-xs transition-colors ${
-				isTimestampField
-					? 'cursor-default opacity-75'
-					: 'cursor-pointer'
-			} ${
-				isIdField
-					? isDark
-						? 'bg-blue-900/30 hover:bg-blue-900/50 border border-blue-700/50'
-						: 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
-					: isTimestampField
+		<div				className={`relative flex items-center justify-between py-2 px-2 rounded-md text-xs ${
+					isTimestampField
+						? 'cursor-default opacity-75'
+						: 'cursor-pointer'
+				} ${
+					isIdField
 						? isDark
-							? 'bg-amber-900/30 border border-amber-700/50'
-							: 'bg-amber-50 border border-amber-200'
-						: isDark
-							? 'bg-gray-700/50 hover:bg-gray-700'
-							: 'bg-gray-50 hover:bg-gray-100'
-			}`}
+							? 'bg-blue-900/30 hover:bg-blue-900/50 border border-blue-700/50'
+							: 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
+						: isTimestampField
+							? isDark
+								? 'bg-amber-900/30 border border-amber-700/50'
+								: 'bg-amber-50 border border-amber-200'
+							: isDark
+								? 'bg-gray-700/50 hover:bg-gray-700'
+								: 'bg-gray-50 hover:bg-gray-100'
+				}`}
+				style={{ transition: 'none' }}
 			onClick={handleClick}
 			onMouseDown={handleMouseDown}
 			onContextMenu={(e) => handleFieldContextMenu(e, index, field.name)}
@@ -102,11 +102,12 @@ function FieldItem({
 							onMoveUp();
 						}}
 						disabled={!canMoveUp}
-						className={`p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors ${
+						className={`p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
 							!canMoveUp
 								? 'opacity-30 cursor-not-allowed'
 								: 'opacity-40 hover:opacity-80'
 						}`}
+						style={{ transition: 'none' }}
 					>
 						<ChevronUp className="w-2 h-2" />
 					</button>
@@ -116,11 +117,12 @@ function FieldItem({
 							onMoveDown();
 						}}
 						disabled={!canMoveDown}
-						className={`p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors ${
+						className={`p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
 							!canMoveDown
 								? 'opacity-30 cursor-not-allowed'
 								: 'opacity-40 hover:opacity-80'
 						}`}
+						style={{ transition: 'none' }}
 					>
 						<ChevronDown className="w-2 h-2" />
 					</button>
@@ -133,7 +135,7 @@ function FieldItem({
 					type="target"
 					position={Position.Left}
 					id={`${data.id}-field-${index}-target`}
-					className={`absolute left-0 top-1/2 transform -translate-y-1/2 w-3 h-3 border-2 border-white transition-all ${
+					className={`absolute left-0 top-1/2 transform -translate-y-1/2 w-3 h-3 border-2 border-white ${
 						canAcceptMoreConnections
 							? hasConnections
 								? 'bg-green-500 hover:bg-green-600'
@@ -143,6 +145,7 @@ function FieldItem({
 					style={{
 						left: '-6px',
 						zIndex: 10,
+						transition: 'none',
 					}}
 					isConnectable={canAcceptMoreConnections}
 				/>
@@ -154,7 +157,7 @@ function FieldItem({
 					type="source"
 					position={Position.Right}
 					id={`${data.id}-field-${index}-source`}
-					className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 border-2 border-white transition-all ${
+					className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 border-2 border-white ${
 						canAcceptMoreConnections
 							? hasConnections
 								? 'bg-green-500 hover:bg-green-600'
@@ -164,6 +167,7 @@ function FieldItem({
 					style={{
 						right: '-6px',
 						zIndex: 10,
+						transition: 'none',
 					}}
 					isConnectable={canAcceptMoreConnections}
 				/>
@@ -217,8 +221,9 @@ function FieldItem({
 									onClick={(e) =>
 										handleRemoveConnection(e, connection.id)
 									}
-									className="ml-1 p-0.5 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors"
+									className="ml-1 p-0.5 rounded-full bg-red-500 hover:bg-red-600 text-white"
 									title="Remove connection"
+									style={{ transition: 'none' }}
 								>
 									<X className="w-2.5 h-2.5" />
 								</button>
@@ -263,6 +268,7 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 	}, []);
 
 	// Prevent hydration mismatch by using a consistent fallback
+	// Don't render theme-dependent classes until mounted
 	const isDark = mounted ? resolvedTheme === 'dark' : false;
 
 	// Calculate dynamic height based on field count
@@ -383,15 +389,20 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 
 	return (
 		<div
-			className={`rounded-xl shadow-xl border min-w-64 max-w-80 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer relative group ${
+			className={`rounded-xl shadow-xl border min-w-64 max-w-80 cursor-pointer relative group ${
 				isDark
 					? 'bg-gray-800 border-gray-700 hover:border-blue-400 text-white shadow-gray-900/50'
 					: 'bg-white border-gray-300 hover:border-blue-500 text-gray-800 shadow-gray-500/30'
 			}`}
-			style={dynamicStyles}
+			style={{
+				...dynamicStyles,
+				opacity: 1,
+				transition: 'none',
+			}}
 			onContextMenu={handleContextMenu}
 			onClick={handleClick}
 			onMouseDown={handleMouseDown}
+			suppressHydrationWarning
 		>
 			{/* Enhanced Collection Header */}
 			<div
@@ -404,7 +415,9 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 					isDark 
 						? 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50' 
 						: 'bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5 opacity-70'
-				} group-hover:opacity-80 transition-opacity duration-300`}></div>
+				} group-hover:opacity-80`}
+					style={{ transition: 'none' }}
+				></div>
 				
 				<div className="relative z-10">
 					<div className="flex items-center justify-center gap-2 mb-2">
