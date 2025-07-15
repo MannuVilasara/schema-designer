@@ -24,6 +24,7 @@ import {
 	EditCollectionModal,
 	EditFieldModal,
 	FieldContextMenu,
+	Navbar,
 } from '@/components';
 import CustomEdge from '@/components/CustomEdge';
 import CodeSidebar from '@/components/layout/CodeSidebar';
@@ -53,11 +54,32 @@ export default function HomePage() {
 	);
 	const { theme, resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
+	const [scrollY, setScrollY] = useState(0);
+	const [isDarkMode, setIsDarkMode] = useState(true);
 
 	// Only run on client side after hydration
 	useEffect(() => {
 		setMounted(true);
 	}, []);
+
+	useEffect(() => {
+		const handleScroll = () => setScrollY(window.scrollY);
+		window.addEventListener("scroll", handleScroll);
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, []);
+
+	useEffect(() => {
+		// Apply theme to document
+		if (isDarkMode) {
+			document.documentElement.classList.add('dark');
+		} else {
+			document.documentElement.classList.remove('dark');
+		}
+	}, [isDarkMode]);
+
+	const toggleTheme = () => {
+		setIsDarkMode(!isDarkMode);
+	};
 
 	// Context menu state
 	const [contextMenu, setContextMenu] = useState<{
@@ -722,11 +744,13 @@ export default function HomePage() {
 	);
 
 	return (
-		<div
-			className={`h-screen w-full flex ${
-				isDark ? 'bg-gray-900' : 'bg-gray-50'
-			}`}
-		>
+		<div className="min-h-screen">
+			<Navbar isDark={isDarkMode} toggleTheme={toggleTheme} scrollY={scrollY} />
+			<div
+				className={`h-screen w-full flex pt-16 ${
+					isDark ? 'bg-gray-900' : 'bg-gray-50'
+				}`}
+			>
 			<Dock />
 			<div className="flex-1 relative">
 				<div className="h-full w-full pb-14">
@@ -867,6 +891,7 @@ export default function HomePage() {
 				selectedCollectionId={codeSidebar.selectedCollectionId}
 				onClose={handleCloseCodeSidebar}
 			/>
+		</div>
 		</div>
 	);
 }
