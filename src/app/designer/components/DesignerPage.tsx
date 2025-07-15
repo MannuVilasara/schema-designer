@@ -34,14 +34,14 @@ export const DesignerPage: React.FC = () => {
       
       <div className="flex flex-col h-screen pt-16">
         {/* Main Canvas Area */}
-        <div className="flex-1 relative overflow-hidden">
-          <div className="absolute inset-0">
+        <div className="flex-1 relative overflow-hidden" style={{ border: '2px solid blue' }}>
+          <div className="absolute inset-0" style={{ border: '2px solid green' }}>
             <DesignerCanvas />
           </div>
         </div>
 
-        {/* Dock */}
-        <Dock />
+        {/* Dock - Temporarily commented out for debugging */}
+        {/* <Dock /> */}
       </div>
 
       {/* Hidden file input for import */}
