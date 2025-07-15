@@ -13,30 +13,60 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useThemeContext } from '@/contexts/ThemeContext';
-import { 
-	X, 
-	Plus, 
-	Type, 
-	Hash, 
-	ToggleLeft, 
-	Calendar, 
-	List, 
-	Braces, 
+import {
+	X,
+	Plus,
+	Type,
+	Hash,
+	ToggleLeft,
+	Calendar,
+	List,
+	Braces,
 	ExternalLink,
 	Sparkles,
 	CheckCircle,
-	AlertTriangle
+	AlertTriangle,
 } from 'lucide-react';
 import type { AddFieldModalProps } from '@/types';
 
 const fieldTypes = [
 	{ value: 'string', label: 'String', icon: Type, description: 'Text data' },
-	{ value: 'number', label: 'Number', icon: Hash, description: 'Numeric values' },
-	{ value: 'boolean', label: 'Boolean', icon: ToggleLeft, description: 'True/false values' },
-	{ value: 'date', label: 'Date', icon: Calendar, description: 'Date and time' },
-	{ value: 'array', label: 'Array', icon: List, description: 'List of values' },
-	{ value: 'object', label: 'Object', icon: Braces, description: 'Nested document' },
-	{ value: 'objectId', label: 'ObjectId', icon: ExternalLink, description: 'Reference to another collection' },
+	{
+		value: 'number',
+		label: 'Number',
+		icon: Hash,
+		description: 'Numeric values',
+	},
+	{
+		value: 'boolean',
+		label: 'Boolean',
+		icon: ToggleLeft,
+		description: 'True/false values',
+	},
+	{
+		value: 'date',
+		label: 'Date',
+		icon: Calendar,
+		description: 'Date and time',
+	},
+	{
+		value: 'array',
+		label: 'Array',
+		icon: List,
+		description: 'List of values',
+	},
+	{
+		value: 'object',
+		label: 'Object',
+		icon: Braces,
+		description: 'Nested document',
+	},
+	{
+		value: 'objectId',
+		label: 'ObjectId',
+		icon: ExternalLink,
+		description: 'Reference to another collection',
+	},
 ];
 
 export default function AddFieldModal({
@@ -176,33 +206,46 @@ export default function AddFieldModal({
 				}
 			>
 				{/* Enhanced Header with Gradient */}
-				<div className={`relative p-6 border-b overflow-hidden ${
-					isDark ? 'border-gray-700/50' : 'border-gray-300/50'
-				}`}>
+				<div
+					className={`relative p-6 border-b overflow-hidden ${
+						isDark ? 'border-gray-700/50' : 'border-gray-300/50'
+					}`}
+				>
 					{/* Header Background Gradient */}
-					<div className={`absolute inset-0 ${
-						isDark 
-							? 'bg-gradient-to-r from-green-500/10 via-blue-500/10 to-purple-500/10 opacity-50'
-							: 'bg-gradient-to-r from-green-500/5 via-blue-500/5 to-purple-500/5 opacity-80'
-					}`}></div>
-					
+					<div
+						className={`absolute inset-0 ${
+							isDark
+								? 'bg-gradient-to-r from-green-500/10 via-blue-500/10 to-purple-500/10 opacity-50'
+								: 'bg-gradient-to-r from-green-500/5 via-blue-500/5 to-purple-500/5 opacity-80'
+						}`}
+					></div>
+
 					<div className="relative z-10 flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
-								isDark
-									? 'bg-gradient-to-r from-green-500/20 to-blue-600/20 border border-green-400/30'
-									: 'bg-gradient-to-r from-green-100 to-blue-100 border border-green-300'
-							}`}>
+							<div
+								className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+									isDark
+										? 'bg-gradient-to-r from-green-500/20 to-blue-600/20 border border-green-400/30'
+										: 'bg-gradient-to-r from-green-100 to-blue-100 border border-green-300'
+								}`}
+							>
 								<Plus className="w-6 h-6 text-green-500" />
 							</div>
 							<div>
 								<h2 className="text-xl font-bold tracking-tight">
 									Add New Field
 								</h2>
-								<p className={`text-sm ${
-									isDark ? 'text-gray-400' : 'text-gray-600'
-								}`}>
-									To collection: <span className="font-medium text-blue-500">{collectionName}</span>
+								<p
+									className={`text-sm ${
+										isDark
+											? 'text-gray-400'
+											: 'text-gray-600'
+									}`}
+								>
+									To collection:{' '}
+									<span className="font-medium text-blue-500">
+										{collectionName}
+									</span>
 								</p>
 							</div>
 						</div>
@@ -257,17 +300,25 @@ export default function AddFieldModal({
 									required
 								/>
 								{nameError && (
-									<p className={`text-sm flex items-center gap-1 ${
-										isDark ? 'text-red-400' : 'text-red-600'
-									}`}>
+									<p
+										className={`text-sm flex items-center gap-1 ${
+											isDark
+												? 'text-red-400'
+												: 'text-red-600'
+										}`}
+									>
 										<AlertTriangle className="w-3 h-3" />
 										{nameError}
 									</p>
 								)}
 								{fieldName && !nameError && (
-									<p className={`text-sm flex items-center gap-1 ${
-										isDark ? 'text-green-400' : 'text-green-600'
-									}`}>
+									<p
+										className={`text-sm flex items-center gap-1 ${
+											isDark
+												? 'text-green-400'
+												: 'text-green-600'
+										}`}
+									>
 										<CheckCircle className="w-3 h-3" />
 										Valid field name
 									</p>
@@ -281,27 +332,51 @@ export default function AddFieldModal({
 								<Type className="w-4 h-4 text-purple-500" />
 								Field Type
 							</Label>
-							<Select value={fieldType} onValueChange={setFieldType}>
-								<SelectTrigger className={`h-12 rounded-xl border-2 transition-all duration-200 ${
-									isDark
-										? 'bg-gray-800/50 border-gray-700 hover:border-gray-600 focus:border-purple-500'
-										: 'bg-gray-50/70 border-gray-300 hover:border-gray-400 focus:border-purple-500'
-								}`}>
+							<Select
+								value={fieldType}
+								onValueChange={setFieldType}
+							>
+								<SelectTrigger
+									className={`h-12 rounded-xl border-2 transition-all duration-200 ${
+										isDark
+											? 'bg-gray-800/50 border-gray-700 hover:border-gray-600 focus:border-purple-500'
+											: 'bg-gray-50/70 border-gray-300 hover:border-gray-400 focus:border-purple-500'
+									}`}
+								>
 									<SelectValue placeholder="Select field type" />
 								</SelectTrigger>
-								<SelectContent className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}>
+								<SelectContent
+									className={
+										isDark
+											? 'bg-gray-800 border-gray-700'
+											: 'bg-white border-gray-300'
+									}
+								>
 									{fieldTypes.map((type) => {
 										const IconComponent = type.icon;
 										return (
-											<SelectItem key={type.value} value={type.value} 
-												className={isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}>
+											<SelectItem
+												key={type.value}
+												value={type.value}
+												className={
+													isDark
+														? 'hover:bg-gray-700'
+														: 'hover:bg-gray-100'
+												}
+											>
 												<div className="flex items-center gap-2">
 													<IconComponent className="w-4 h-4" />
 													<div>
-														<div className="font-medium">{type.label}</div>
-														<div className={`text-xs ${
-															isDark ? 'text-gray-400' : 'text-gray-500'
-														}`}>
+														<div className="font-medium">
+															{type.label}
+														</div>
+														<div
+															className={`text-xs ${
+																isDark
+																	? 'text-gray-400'
+																	: 'text-gray-500'
+															}`}
+														>
 															{type.description}
 														</div>
 													</div>
@@ -314,28 +389,38 @@ export default function AddFieldModal({
 						</div>
 
 						{/* Field Options Section */}
-						<div className={`p-4 rounded-xl border-2 border-dashed transition-all duration-200 ${
-							isDark 
-								? 'border-gray-700 bg-gray-800/30 hover:border-gray-600' 
-								: 'border-gray-300 bg-gray-50/70 hover:border-gray-400'
-						}`}>
+						<div
+							className={`p-4 rounded-xl border-2 border-dashed transition-all duration-200 ${
+								isDark
+									? 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
+									: 'border-gray-300 bg-gray-50/70 hover:border-gray-400'
+							}`}
+						>
 							<div className="flex items-center gap-2 mb-4">
 								<ToggleLeft className="w-4 h-4 text-orange-500" />
 								<Label className="text-sm font-semibold">
 									Field Options
 								</Label>
 							</div>
-							
-							<div className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
-								isDark 
-									? 'bg-gray-700/50 border-gray-600/50 hover:bg-gray-700' 
-									: 'bg-white/80 border-gray-200/80 hover:bg-white'
-							}`}>
+
+							<div
+								className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+									isDark
+										? 'bg-gray-700/50 border-gray-600/50 hover:bg-gray-700'
+										: 'bg-white/80 border-gray-200/80 hover:bg-white'
+								}`}
+							>
 								<div>
-									<div className="font-medium text-sm">Required Field</div>
-									<div className={`text-xs ${
-										isDark ? 'text-gray-400' : 'text-gray-500'
-									}`}>
+									<div className="font-medium text-sm">
+										Required Field
+									</div>
+									<div
+										className={`text-xs ${
+											isDark
+												? 'text-gray-400'
+												: 'text-gray-500'
+										}`}
+									>
 										Field must have a value
 									</div>
 								</div>
@@ -348,17 +433,22 @@ export default function AddFieldModal({
 
 							{/* Field Type Info */}
 							{fieldType === 'objectId' && (
-								<div className={`mt-4 pt-4 border-t text-xs rounded-lg p-3 ${
-									isDark
-										? 'border-gray-600 bg-purple-900/20 text-purple-300'
-										: 'border-gray-300 bg-purple-50/80 text-purple-700'
-								}`}>
+								<div
+									className={`mt-4 pt-4 border-t text-xs rounded-lg p-3 ${
+										isDark
+											? 'border-gray-600 bg-purple-900/20 text-purple-300'
+											: 'border-gray-300 bg-purple-50/80 text-purple-700'
+									}`}
+								>
 									<div className="flex items-center gap-2">
 										<ExternalLink className="w-3 h-3" />
-										<span className="font-medium">Reference field:</span>
+										<span className="font-medium">
+											Reference field:
+										</span>
 									</div>
 									<div className="mt-1">
-										This field will store references to documents in other collections
+										This field will store references to
+										documents in other collections
 									</div>
 								</div>
 							)}

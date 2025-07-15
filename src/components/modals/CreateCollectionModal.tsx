@@ -148,28 +148,36 @@ export default function CreateCollectionModal({
 				}
 			>
 				{/* Enhanced Header with Gradient */}
-				<div className={`relative p-6 border-b overflow-hidden ${
-					isDark ? 'border-gray-700/50' : 'border-gray-200/50'
-				}`}>
+				<div
+					className={`relative p-6 border-b overflow-hidden ${
+						isDark ? 'border-gray-700/50' : 'border-gray-200/50'
+					}`}
+				>
 					{/* Header Background Gradient */}
 					<div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50"></div>
-					
+
 					<div className="relative z-10 flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
-								isDark
-									? 'bg-gradient-to-r from-blue-500/20 to-purple-600/20 border border-blue-400/30'
-									: 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200'
-							}`}>
+							<div
+								className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+									isDark
+										? 'bg-gradient-to-r from-blue-500/20 to-purple-600/20 border border-blue-400/30'
+										: 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200'
+								}`}
+							>
 								<Database className="w-6 h-6 text-blue-500" />
 							</div>
 							<div>
 								<h2 className="text-xl font-bold tracking-tight">
 									Create Collection
 								</h2>
-								<p className={`text-sm ${
-									isDark ? 'text-gray-400' : 'text-gray-500'
-								}`}>
+								<p
+									className={`text-sm ${
+										isDark
+											? 'text-gray-400'
+											: 'text-gray-500'
+									}`}
+								>
 									Define a new MongoDB collection
 								</p>
 							</div>
@@ -236,30 +244,41 @@ export default function CreateCollectionModal({
 						</div>
 
 						{/* Timestamp Configuration Section */}
-						<div className={`p-4 rounded-xl border-2 border-dashed transition-all duration-200 ${
-							isDark 
-								? 'border-gray-700 bg-gray-800/30 hover:border-gray-600' 
-								: 'border-gray-200 bg-gray-50/50 hover:border-gray-300'
-						}`}>
+						<div
+							className={`p-4 rounded-xl border-2 border-dashed transition-all duration-200 ${
+								isDark
+									? 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
+									: 'border-gray-200 bg-gray-50/50 hover:border-gray-300'
+							}`}
+						>
 							<div className="flex items-center gap-2 mb-4">
 								<Clock className="w-4 h-4 text-amber-500" />
 								<Label className="text-sm font-semibold">
 									Timestamp Configuration
 								</Label>
 							</div>
-							
+
 							<div className="space-y-4">
-								<div className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
-									isDark 
-										? 'bg-gray-700/50 border-gray-600/50 hover:bg-gray-700' 
-										: 'bg-white/50 border-gray-200/50 hover:bg-white'
-								}`}>
+								<div
+									className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+										isDark
+											? 'bg-gray-700/50 border-gray-600/50 hover:bg-gray-700'
+											: 'bg-white/50 border-gray-200/50 hover:bg-white'
+									}`}
+								>
 									<div>
-										<div className="font-medium text-sm">Auto Timestamps</div>
-										<div className={`text-xs ${
-											isDark ? 'text-gray-400' : 'text-gray-500'
-										}`}>
-											Automatically manage createdAt and updatedAt
+										<div className="font-medium text-sm">
+											Auto Timestamps
+										</div>
+										<div
+											className={`text-xs ${
+												isDark
+													? 'text-gray-400'
+													: 'text-gray-500'
+											}`}
+										>
+											Automatically manage createdAt and
+											updatedAt
 										</div>
 									</div>
 									<Switch
@@ -274,22 +293,30 @@ export default function CreateCollectionModal({
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-2">
 												<div className="w-2 h-2 rounded-full bg-green-500"></div>
-												<span className="text-sm font-medium">createdAt</span>
+												<span className="text-sm font-medium">
+													createdAt
+												</span>
 											</div>
 											<Switch
 												checked={includeCreatedAt}
-												onCheckedChange={setIncludeCreatedAt}
+												onCheckedChange={
+													setIncludeCreatedAt
+												}
 												className="data-[state=checked]:bg-green-500"
 											/>
 										</div>
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-2">
 												<div className="w-2 h-2 rounded-full bg-orange-500"></div>
-												<span className="text-sm font-medium">updatedAt</span>
+												<span className="text-sm font-medium">
+													updatedAt
+												</span>
 											</div>
 											<Switch
 												checked={includeUpdatedAt}
-												onCheckedChange={setIncludeUpdatedAt}
+												onCheckedChange={
+													setIncludeUpdatedAt
+												}
 												className="data-[state=checked]:bg-orange-500"
 											/>
 										</div>
@@ -298,24 +325,33 @@ export default function CreateCollectionModal({
 							</div>
 
 							{/* Enhanced Info Section */}
-							<div className={`mt-4 pt-4 border-t text-xs rounded-lg p-3 ${
-								isDark
-									? 'border-gray-600 bg-blue-900/20 text-blue-300'
-									: 'border-gray-200 bg-blue-50/50 text-blue-600'
-							}`}>
+							<div
+								className={`mt-4 pt-4 border-t text-xs rounded-lg p-3 ${
+									isDark
+										? 'border-gray-600 bg-blue-900/20 text-blue-300'
+										: 'border-gray-200 bg-blue-50/50 text-blue-600'
+								}`}
+							>
 								<div className="flex items-center gap-2">
 									<Sparkles className="w-3 h-3" />
-									<span className="font-medium">Auto-generated field:</span>
+									<span className="font-medium">
+										Auto-generated field:
+									</span>
 								</div>
 								<div className="mt-1 flex items-center gap-1">
-									<code className={`px-2 py-1 rounded font-mono text-xs ${
-										isDark
-											? 'bg-gray-800 text-blue-400 border border-gray-700'
-											: 'bg-white text-blue-700 border border-blue-200'
-									}`}>
+									<code
+										className={`px-2 py-1 rounded font-mono text-xs ${
+											isDark
+												? 'bg-gray-800 text-blue-400 border border-gray-700'
+												: 'bg-white text-blue-700 border border-blue-200'
+										}`}
+									>
 										_id
 									</code>
-									<span>ObjectId field will be automatically added</span>
+									<span>
+										ObjectId field will be automatically
+										added
+									</span>
 								</div>
 							</div>
 						</div>

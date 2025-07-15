@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,7 @@ export default function EditCollectionModal({
 	onClose,
 	onSave,
 }: EditCollectionModalProps) {
-	const { resolvedTheme } = useTheme();
+	const { isDark } = useThemeContext();
 	const [mounted, setMounted] = useState(false);
 	const [collectionName, setCollectionName] = useState('');
 	const [nameError, setNameError] = useState('');
@@ -24,9 +24,6 @@ export default function EditCollectionModal({
 	useEffect(() => {
 		setMounted(true);
 	}, []);
-
-	const isDark = mounted ? resolvedTheme === 'dark' : false;
-
 	// Validate collection name
 	const validateCollectionName = (name: string) => {
 		if (name.includes(' ')) {

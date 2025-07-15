@@ -406,40 +406,51 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 				}`}
 			>
 				{/* Header Background Gradient */}
-				<div className={`absolute inset-0 ${
-					isDark 
-						? 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50' 
-						: 'bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5 opacity-70'
-				} group-hover:opacity-80`}
+				<div
+					className={`absolute inset-0 ${
+						isDark
+							? 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50'
+							: 'bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5 opacity-70'
+					} group-hover:opacity-80`}
 					style={{ transition: 'none' }}
 				></div>
-				
+
 				<div className="relative z-10">
 					<div className="flex items-center justify-center gap-2 mb-2">
-						<div className={`p-1.5 rounded-lg ${
-							isDark 
-								? 'bg-blue-500/20 text-blue-400' 
-								: 'bg-blue-100 text-blue-600'
-						}`}>
+						<div
+							className={`p-1.5 rounded-lg ${
+								isDark
+									? 'bg-blue-500/20 text-blue-400'
+									: 'bg-blue-100 text-blue-600'
+							}`}
+						>
 							<Database className="w-4 h-4" />
 						</div>
-						<span className="font-bold text-lg tracking-wide">{data.name}</span>
+						<span className="font-bold text-lg tracking-wide">
+							{data.name}
+						</span>
 					</div>
 					<div className="flex items-center justify-center gap-2">
-						<div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-							isDark 
-								? 'bg-gray-700 text-gray-300' 
-								: 'bg-gray-100 text-gray-600'
-						}`}>
+						<div
+							className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+								isDark
+									? 'bg-gray-700 text-gray-300'
+									: 'bg-gray-100 text-gray-600'
+							}`}
+						>
 							<span>{data.fields.length}</span>
-							<span>field{data.fields.length !== 1 ? 's' : ''}</span>
+							<span>
+								field{data.fields.length !== 1 ? 's' : ''}
+							</span>
 						</div>
-						{data.fields.some(f => f.type === 'objectId') && (
-							<div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-								isDark 
-									? 'bg-purple-500/20 text-purple-400' 
-									: 'bg-purple-100 text-purple-600'
-							}`}>
+						{data.fields.some((f) => f.type === 'objectId') && (
+							<div
+								className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+									isDark
+										? 'bg-purple-500/20 text-purple-400'
+										: 'bg-purple-100 text-purple-600'
+								}`}
+							>
 								<Link className="w-3 h-3" />
 								<span>refs</span>
 							</div>
@@ -538,18 +549,26 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 						})}
 					</div>
 				) : (
-					<div className={`text-center py-6 ${
-						isDark ? 'text-gray-400' : 'text-gray-500'
-					}`}>
-						<div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 ${
-							isDark 
-								? 'bg-gray-700/50 border border-gray-600' 
-								: 'bg-gray-100 border border-gray-200'
-						}`}>
+					<div
+						className={`text-center py-6 ${
+							isDark ? 'text-gray-400' : 'text-gray-500'
+						}`}
+					>
+						<div
+							className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 ${
+								isDark
+									? 'bg-gray-700/50 border border-gray-600'
+									: 'bg-gray-100 border border-gray-200'
+							}`}
+						>
 							<Plus className="w-5 h-5" />
 						</div>
-						<p className="text-sm font-medium mb-1">No fields yet</p>
-						<p className="text-xs opacity-75">Right-click to add fields</p>
+						<p className="text-sm font-medium mb-1">
+							No fields yet
+						</p>
+						<p className="text-xs opacity-75">
+							Right-click to add fields
+						</p>
 					</div>
 				)}
 			</div>

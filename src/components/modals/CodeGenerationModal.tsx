@@ -8,7 +8,7 @@ import { Copy, Download, X, Code2, FileCode, Sparkles } from 'lucide-react';
 import { Button } from '../ui/button';
 import { generateCode, ORM, ORM_LABELS, CODE_GENERATORS } from '@/generators';
 import { useSchemaStore } from '@/store/schemaStore';
-import { useTheme } from 'next-themes';
+// import { useTheme } from 'next-themes';
 import toast from 'react-hot-toast';
 import { useThemeContext } from '@/contexts/ThemeContext';
 
@@ -25,7 +25,7 @@ export default function CodeGenerationModal({
 }: CodeGenerationModalProps) {
 	const [selectedORM, setSelectedORM] = useState<ORM>('mongoose');
 	const { collections, connections } = useSchemaStore();
-	const { resolvedTheme } = useTheme();
+	// const { resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 	const { isDark } = useThemeContext();
 

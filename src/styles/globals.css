@@ -171,7 +171,9 @@
 }
 
 .react-flow__node * {
-	transition: box-shadow 0.2s ease, border-color 0.2s ease !important;
+	transition:
+		box-shadow 0.2s ease,
+		border-color 0.2s ease !important;
 }
 
 /* Ensure handles remain visible during drag */

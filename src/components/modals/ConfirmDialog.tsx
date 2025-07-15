@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useTheme } from 'next-themes';
+// import { useTheme } from 'next-themes';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import type { ConfirmDialogProps } from '@/types';
+import { useThemeContext } from '@/contexts/ThemeContext';
 
 export default function ConfirmDialog({
 	isOpen,
@@ -14,14 +15,14 @@ export default function ConfirmDialog({
 	onConfirm,
 	onCancel,
 }: ConfirmDialogProps) {
-	const { resolvedTheme } = useTheme();
+	const { isDark } = useThemeContext();
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
 		setMounted(true);
 	}, []);
 
-	const isDark = mounted ? resolvedTheme === 'dark' : false;
+	// const isDark = mounted ? resolvedTheme === 'dark' : false;
 
 	if (!isOpen) return null;
 
