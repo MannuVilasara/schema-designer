@@ -1,0 +1,9 @@
+{
+	"frontend": [
+		"src/components",
+		"src/app/page.tsx",
+		"src/app/layout.tsx",
+		"src/app/designer"
+	],
+	"backend": ["src/app/api"]
+}

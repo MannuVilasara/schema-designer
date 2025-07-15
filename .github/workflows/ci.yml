@@ -7,9 +7,12 @@ on:
     pull_request:
         branches:
             - main
+        types: [labeled]
 
 jobs:
     build:
+        if: github.event.action == 'labeled' && github.event.label.name == 'build ready'
+        name: Build Project
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
