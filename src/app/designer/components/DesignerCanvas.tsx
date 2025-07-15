@@ -10,6 +10,7 @@ import CustomEdge from '@/components/CustomEdge';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { useReactFlowHandler } from '../hooks/useReactFlowHandler';
 import { useDesignerActions } from '../hooks/useDesignerActions';
+import { useSchemaStore } from '@/store/schemaStore';
 
 const nodeTypes = {
   collectionNode: CollectionNode,
@@ -21,6 +22,8 @@ const edgeTypes = {
 
 export const DesignerCanvas: React.FC = () => {
   const { isDark } = useThemeContext();
+  const collections = useSchemaStore((state) => state.collections);
+  const addCollection = useSchemaStore((state) => state.addCollection);
   
   const {
     handleContextMenu,
@@ -43,6 +46,15 @@ export const DesignerCanvas: React.FC = () => {
 
   const proOptions = useMemo(() => ({ hideAttribution: true }), []);
 
+  // Debug logging
+  console.log('DesignerCanvas render:', {
+    collections: collections.length,
+    nodes: nodes.length,
+    edges: edges.length,
+    isDark,
+    nodeTypes: Object.keys(nodeTypes),
+  });
+
   const handlePaneContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
     openCreateCollectionModal({ x: event.clientX, y: event.clientY });
@@ -50,7 +62,59 @@ export const DesignerCanvas: React.FC = () => {
 
   return (
     <ReactFlowProvider>
-      <div className="w-full h-full">
+      <div 
+        className="w-full h-full" 
+        style={{ 
+          border: '3px solid red',
+          position: 'relative',
+          minHeight: '400px',
+          backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+        }}
+      >
+        {/* Debug overlay */}
+        <div 
+          style={{
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            zIndex: 1000,
+            background: 'rgba(255, 255, 255, 0.95)',
+            padding: '10px',
+            borderRadius: '5px',
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            border: '1px solid #ccc',
+          }}
+        >
+          Canvas Debug: {collections.length} collections, {nodes.length} nodes, {edges.length} edges
+          <br />
+          Theme: {isDark ? 'dark' : 'light'}
+          <br />
+          Node Types: {Object.keys(nodeTypes).join(', ')}
+          <br />
+          Container: {typeof window !== 'undefined' ? 'client' : 'server'}
+          <br />
+          <button 
+            onClick={() => addCollection('TestCollection' + Date.now(), {
+              includeTimestamps: true,
+              includeCreatedAt: true,
+              includeUpdatedAt: true,
+            })}
+            style={{ 
+              background: '#007bff', 
+              color: 'white', 
+              border: 'none', 
+              padding: '4px 8px', 
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginTop: '5px',
+              fontSize: '11px',
+            }}
+          >
+            Add Test Collection
+          </button>
+        </div>
+        
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -79,7 +143,6 @@ export const DesignerCanvas: React.FC = () => {
           multiSelectionKeyCode={['Meta', 'Control']}
           selectionKeyCode={['Meta', 'Control']}
           style={{
-            backgroundColor: isDark ? '#0f172a' : '#f8fafc',
             width: '100%',
             height: '100%',
           }}

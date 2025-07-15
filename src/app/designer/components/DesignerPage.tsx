@@ -32,10 +32,10 @@ export const DesignerPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
-      <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)', marginTop: '64px' }}>
+      <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)', marginTop: '64px', border: '2px solid blue' }}>
         {/* Main Canvas Area */}
-        <div className="flex-1 relative overflow-hidden">
-          <div className="absolute inset-0">
+        <div className="flex-1 relative overflow-hidden" style={{ border: '2px solid green' }}>
+          <div className="absolute inset-0" style={{ border: '2px solid purple' }}>
             <DesignerCanvas />
           </div>
         </div>
