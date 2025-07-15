@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MongoDB Schema Designer
+
+A modern, visual schema designer for MongoDB, built with Next.js and TypeScript. Easily create, edit, and export schemas for Mongoose and Prisma ORM frameworks.
+
+## Features
+
+- **Visual Schema Design:** Drag-and-drop interface to create collections and fields.
+- **Field Types & Relations:** Supports all MongoDB field types, including references and arrays.
+- **Code Generation:** Instantly generate code for Mongoose and Prisma based on your schema.
+- **Export/Import:** Save your schema as JSON or import existing schemas.
+- **Theming:** Light and dark mode support.
+- **Context Menus & Modals:** Intuitive UI for editing collections, fields, and connections.
+- **State Persistence:** Uses Zustand for fast, persistent state management.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js (v18+ recommended)
+- pnpm (or npm/yarn)
+
+### Installation
+
+```sh
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```sh
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Build
 
-## Learn More
+```sh
+pnpm build
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Testing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Tests use Mocha and Chai:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```sh
+pnpm test
+```
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+├── src/
+│   ├── app/                # Next.js app entry and pages
+│   ├── components/         # UI components (Dock, Sidebar, Modals, Menus, etc.)
+│   ├── generators/         # Code generators for Mongoose and Prisma
+│   ├── store/              # Zustand state management
+│   ├── types/              # TypeScript types
+│   ├── styles/             # Global and component styles
+│   └── lib/                # Utility functions
+├── public/                 # Static assets
+├── package.json            # Project metadata and scripts
+├── README.md               # Project documentation
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Usage
+
+1. Start the development server.
+2. Open the designer in your browser.
+3. Add collections and fields visually.
+4. Use the dock and context menus to generate code, export/import schemas, and manage your design.
+
+## Code Generation
+
+- **Mongoose:** Generates ready-to-use Mongoose models with indexes and references.
+- **Prisma:** Generates Prisma models with relations and attributes for MongoDB.
+
+## Contributing
+
+Pull requests and issues are welcome! Please open an issue for bugs or feature requests.
+
+## License
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](./LICENSE) file for details.
