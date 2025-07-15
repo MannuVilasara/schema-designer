@@ -182,8 +182,6 @@ function Canvas() {
 		setCreateCollectionModal({ isOpen: false });
 	}, []);
 
-	// Field operation handlers
-
 	const handleCloseEditCollection = useCallback(() => {
 		setEditCollectionModal({
 			isOpen: false,
