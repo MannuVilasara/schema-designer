@@ -8,10 +8,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { useThemeContext } from "@/contexts/ThemeContext";
 
 export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
-  const [isDark, setIsDark] = useState(true);
+  const { isDark, toggleTheme } = useThemeContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -19,19 +20,6 @@ export default function LandingPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    // Apply theme to document
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDark]);
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
 
   const handleStartDesigning = () => {
     router.push('/designer');
@@ -116,7 +104,7 @@ export default function LandingPage() {
       </div>
       
       {/* Navigation */}
-      <Navbar isDark={isDark} toggleTheme={toggleTheme} scrollY={scrollY} />
+      <Navbar scrollY={scrollY} />
 
       {/* Hero */}
       <main className="pt-20 relative z-10">
@@ -316,7 +304,7 @@ export default function LandingPage() {
         </motion.section>
       </main>
 
-      <Footer isDark={isDark} />
+      <Footer />
     </div>
   );
 }

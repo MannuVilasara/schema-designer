@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css'; // Ensure this path is correct
 import { ThemeProvider } from '@/components';
+import { ThemeProvider as CustomThemeProvider } from '@/contexts/ThemeContext';
 import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({
@@ -22,25 +23,27 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className={`${inter.variable} antialiased`}>
-				<ThemeProvider
-					attribute="class"
-					defaultTheme="system"
-					enableSystem
-					// disableTransitionOnChange
-				>
-					{children}
-					<Toaster
-						position="top-right"
-						toastOptions={{
-							duration: 3000,
-							style: {
-								background: 'var(--background)',
-								color: 'var(--foreground)',
-								border: '1px solid var(--border)',
-							},
-						}}
-					/>
-				</ThemeProvider>
+				<CustomThemeProvider>
+					<ThemeProvider
+						attribute="class"
+						defaultTheme="system"
+						enableSystem
+						// disableTransitionOnChange
+					>
+						{children}
+						<Toaster
+							position="top-right"
+							toastOptions={{
+								duration: 3000,
+								style: {
+									background: 'var(--background)',
+									color: 'var(--foreground)',
+									border: '1px solid var(--border)',
+								},
+							}}
+						/>
+					</ThemeProvider>
+				</CustomThemeProvider>
 			</body>
 		</html>
 	);

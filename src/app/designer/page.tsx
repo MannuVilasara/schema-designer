@@ -30,6 +30,7 @@ import CustomEdge from '@/components/CustomEdge';
 import CodeSidebar from '@/components/layout/CodeSidebar';
 import { useSchemaStore } from '@/store/schemaStore';
 import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import toast from 'react-hot-toast';
 
 export default function HomePage() {
@@ -53,9 +54,9 @@ export default function HomePage() {
 		(state) => state.getFieldConnections
 	);
 	const { theme, resolvedTheme } = useTheme();
+	const { isDark: isDarkMode } = useThemeContext();
 	const [mounted, setMounted] = useState(false);
 	const [scrollY, setScrollY] = useState(0);
-	const [isDarkMode, setIsDarkMode] = useState(true);
 
 	// Only run on client side after hydration
 	useEffect(() => {
@@ -67,19 +68,6 @@ export default function HomePage() {
 		window.addEventListener("scroll", handleScroll);
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
-
-	useEffect(() => {
-		// Apply theme to document
-		if (isDarkMode) {
-			document.documentElement.classList.add('dark');
-		} else {
-			document.documentElement.classList.remove('dark');
-		}
-	}, [isDarkMode]);
-
-	const toggleTheme = () => {
-		setIsDarkMode(!isDarkMode);
-	};
 
 	// Context menu state
 	const [contextMenu, setContextMenu] = useState<{
@@ -745,7 +733,7 @@ export default function HomePage() {
 
 	return (
 		<div className="min-h-screen">
-			<Navbar isDark={isDarkMode} toggleTheme={toggleTheme} scrollY={scrollY} />
+			<Navbar scrollY={scrollY} />
 			<div
 				className={`h-screen w-full flex pt-16 ${
 					isDark ? 'bg-gray-900' : 'bg-gray-50'
