@@ -1,6 +1,5 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface ThemeContextType {
   isDark: boolean;
@@ -47,11 +46,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
     }
   };
-
-  // Show loading spinner during initial mount to prevent hydration mismatch
-  if (!mounted) {
-    return <LoadingSpinner />;
-  }
 
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>

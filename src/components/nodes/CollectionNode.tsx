@@ -383,9 +383,6 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 			}`}
 			style={{
 				...dynamicStyles,
-				willChange: 'transform',
-				backfaceVisibility: 'hidden',
-				transform: 'translateZ(0)',
 			}}
 			onContextMenu={handleContextMenu}
 			onClick={handleClick}
