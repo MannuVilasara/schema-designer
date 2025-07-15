@@ -8,7 +8,13 @@ import {
 } from 'reactflow';
 import { useSchemaStore } from '@/store/schemaStore';
 
-export const useReactFlowHandler = () => {
+interface UseReactFlowHandlerProps {
+  onContextMenu?: (event: React.MouseEvent, collectionId: string, collectionName: string) => void;
+  onFieldContextMenu?: (event: React.MouseEvent, collectionId: string, fieldIndex: number, fieldName: string) => void;
+  onCloseMenus?: () => void;
+}
+
+export const useReactFlowHandler = (props: UseReactFlowHandlerProps = {}) => {
   const {
     collections,
     connections,
@@ -17,17 +23,22 @@ export const useReactFlowHandler = () => {
     removeConnection,
     getFieldConnections,
   } = useSchemaStore();
+  
+  const { onContextMenu, onFieldContextMenu, onCloseMenus } = props;
 
   // Convert collections to ReactFlow nodes
   const nodes: Node[] = useMemo(() => {
     return collections.map((collection, index) => ({
       id: collection.id,
-      type: 'collection',
+      type: 'collectionNode',
       position: collection.position || { x: 100 + index * 220, y: 100 },
       data: {
         id: collection.id,
         name: collection.name,
         fields: collection.fields,
+        onContextMenu: onContextMenu || (() => {}),
+        onFieldContextMenu: onFieldContextMenu || (() => {}),
+        onCloseMenus: onCloseMenus || (() => {}),
       },
       style: {
         background: 'transparent',

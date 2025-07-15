@@ -34,8 +34,10 @@ export const DesignerPage: React.FC = () => {
       
       <div className="flex flex-col h-screen pt-16">
         {/* Main Canvas Area */}
-        <div className="flex-1 relative">
-          <DesignerCanvas />
+        <div className="flex-1 relative overflow-hidden">
+          <div className="absolute inset-0">
+            <DesignerCanvas />
+          </div>
         </div>
 
         {/* Dock */}

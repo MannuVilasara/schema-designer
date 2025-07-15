@@ -12,7 +12,7 @@ import { useReactFlowHandler } from '../hooks/useReactFlowHandler';
 import { useDesignerActions } from '../hooks/useDesignerActions';
 
 const nodeTypes = {
-  collection: CollectionNode,
+  collectionNode: CollectionNode,
 };
 
 const edgeTypes = {
@@ -21,13 +21,6 @@ const edgeTypes = {
 
 export const DesignerCanvas: React.FC = () => {
   const { isDark } = useThemeContext();
-  const { 
-    nodes, 
-    edges, 
-    onNodesChange, 
-    onConnect, 
-    onEdgeClick 
-  } = useReactFlowHandler();
   
   const {
     handleContextMenu,
@@ -35,6 +28,18 @@ export const DesignerCanvas: React.FC = () => {
     openCodeSidebar,
     openCreateCollectionModal,
   } = useDesignerActions();
+  
+  const { 
+    nodes, 
+    edges, 
+    onNodesChange, 
+    onConnect, 
+    onEdgeClick 
+  } = useReactFlowHandler({
+    onContextMenu: handleContextMenu,
+    onFieldContextMenu: handleFieldContextMenu,
+    onCloseMenus: () => {}, // We can add this functionality later if needed
+  });
 
   const proOptions = useMemo(() => ({ hideAttribution: true }), []);
 
@@ -45,7 +50,7 @@ export const DesignerCanvas: React.FC = () => {
 
   return (
     <ReactFlowProvider>
-      <div className="w-full h-full">
+      <div className="w-full h-full" style={{ minHeight: '400px' }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -75,6 +80,8 @@ export const DesignerCanvas: React.FC = () => {
           selectionKeyCode={['Meta', 'Control']}
           style={{
             backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+            width: '100%',
+            height: '100%',
           }}
         >
           <Background 
