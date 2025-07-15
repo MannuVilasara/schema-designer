@@ -4,12 +4,15 @@ import { motion } from "framer-motion";
 import { 
   Github, Play, Database, Zap, Users, Sparkles, Link2, Download, Shield, Globe, Cpu
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
   const [isDark, setIsDark] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -28,6 +31,10 @@ export default function LandingPage() {
 
   const toggleTheme = () => {
     setIsDark(!isDark);
+  };
+
+  const handleStartDesigning = () => {
+    router.push('/designer');
   };
 
   const fadeUp = {
@@ -167,6 +174,7 @@ export default function LandingPage() {
             className="flex flex-col sm:flex-row justify-center gap-4"
           >
             <motion.button 
+              onClick={handleStartDesigning}
               className="px-8 py-3 rounded bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition text-white flex items-center justify-center relative overflow-hidden group"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
@@ -180,18 +188,24 @@ export default function LandingPage() {
               <Play className="w-5 h-5 mr-2 relative z-10" />
               <span className="relative z-10">Start Designing</span>
             </motion.button>
-            <motion.button 
-              className={`px-8 py-3 rounded border transition flex items-center justify-center relative overflow-hidden group ${
-                isDark 
-                  ? 'border-white/20 hover:bg-white/10 text-white' 
-                  : 'border-gray-300 hover:bg-gray-100 text-gray-900'
-              }`}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
+            <Link 
+              href="https://github.com/ikeshav26/schema-designer"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <Github className="w-5 h-5 mr-2" />
-              View on GitHub
-            </motion.button>
+              <motion.button 
+                className={`px-8 py-3 rounded border transition flex items-center justify-center relative overflow-hidden group ${
+                  isDark 
+                    ? 'border-white/20 hover:bg-white/10 text-white' 
+                    : 'border-gray-300 hover:bg-gray-100 text-gray-900'
+                }`}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Github className="w-5 h-5 mr-2" />
+                View on GitHub
+              </motion.button>
+            </Link>
           </motion.div>
         </motion.section>
 
