@@ -5,3 +5,6 @@ export * from './layout';
 export * from './nodes';
 export * from './providers';
 export * from './ui';
+
+// Individual component exports
+export { default as LoadingSpinner } from './LoadingSpinner';

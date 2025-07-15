@@ -3,15 +3,15 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Database, Menu, X, Sun, Moon } from "lucide-react";
 import Link from "next/link";
+import { useThemeContext } from "@/contexts/ThemeContext";
 
 interface NavbarProps {
-  isDark: boolean;
-  toggleTheme: () => void;
   scrollY?: number;
 }
 
-export default function Navbar({ isDark, toggleTheme, scrollY = 0 }: NavbarProps) {
+export default function Navbar({ scrollY = 0 }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isDark, toggleTheme } = useThemeContext();
 
   const navItems = [
     { name: "Features", href: "/#features" },

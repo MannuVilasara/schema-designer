@@ -1,10 +1,8 @@
 import React from "react";
+import { useThemeContext } from "@/contexts/ThemeContext";
 
-interface FooterProps {
-  isDark: boolean;
-}
-
-export default function Footer({ isDark }: FooterProps) {
+export default function Footer() {
+  const { isDark } = useThemeContext();
   return (
     <footer className={`text-center py-8 border-t transition-colors relative z-10 ${
       isDark 

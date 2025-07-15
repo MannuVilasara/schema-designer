@@ -4,29 +4,17 @@ import { motion } from "framer-motion";
 import { Heart, Mail, Github, Twitter, MessageSquare, Send } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { useThemeContext } from "@/contexts/ThemeContext";
 
 export default function ContactPage() {
   const [scrollY, setScrollY] = useState(0);
-  const [isDark, setIsDark] = useState(true);
+  const { isDark } = useThemeContext();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    // Apply theme to document
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDark]);
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
 
   const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -44,7 +32,7 @@ export default function ContactPage() {
         ? 'bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-white' 
         : 'bg-gradient-to-b from-gray-50 via-white to-gray-100 text-gray-900'
     }`}>
-      <Navbar isDark={isDark} toggleTheme={toggleTheme} scrollY={scrollY} />
+      <Navbar scrollY={scrollY} />
 
       {/* Main Content */}
       <main className="pt-20 relative z-10">
@@ -306,7 +294,7 @@ export default function ContactPage() {
         </motion.section>
       </main>
 
-      <Footer isDark={isDark} />
+      <Footer />
     </div>
   );
 }
