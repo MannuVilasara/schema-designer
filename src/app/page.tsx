@@ -177,7 +177,7 @@ export default function LandingPage() {
               <span className="relative z-10">Start Designing</span>
             </motion.button>
             <Link 
-              href="https://github.com/ikeshav26/schema-designer"
+              href="https://github.com/MannuVilasara/schema-designer"
               target="_blank"
               rel="noopener noreferrer"
             >
