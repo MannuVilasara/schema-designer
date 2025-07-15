@@ -20,10 +20,10 @@ export const useReactFlowHandler = () => {
 
   // Convert collections to ReactFlow nodes
   const nodes: Node[] = useMemo(() => {
-    return collections.map((collection) => ({
+    return collections.map((collection, index) => ({
       id: collection.id,
       type: 'collection',
-      position: collection.position,
+      position: collection.position || { x: 100 + index * 220, y: 100 },
       data: {
         id: collection.id,
         name: collection.name,
