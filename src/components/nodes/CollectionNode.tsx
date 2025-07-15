@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Handle, Position } from 'reactflow';
 import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import { useSchemaStore } from '@/store/schemaStore';
 import toast from 'react-hot-toast';
 import {
@@ -18,6 +19,9 @@ import {
 	X,
 	ChevronUp,
 	ChevronDown,
+	Sparkles,
+	Key,
+	Plus,
 } from 'lucide-react';
 import type { CollectionNodeProps } from '@/types';
 
@@ -246,6 +250,7 @@ function FieldItem({
 
 export default function CollectionNode({ data }: CollectionNodeProps) {
 	const { theme, resolvedTheme } = useTheme();
+	const { isDark: isDarkTheme } = useThemeContext();
 	const [mounted, setMounted] = useState(false);
 	const connections = useSchemaStore((state) => state.connections);
 	const getFieldConnections = useSchemaStore(
@@ -259,15 +264,15 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 		setMounted(true);
 	}, []);
 
-	const isDark = mounted ? resolvedTheme === 'dark' : false;
+	const isDark = mounted ? isDarkTheme : false;
 
 	// Calculate dynamic height based on field count
 	const getCollectionHeight = () => {
-		const headerHeight = 80; // Header section height
+		const headerHeight = 88; // Enhanced header section height (was 80)
 		const fieldHeight = 36; // Each field row height (more precise measurement)
-		const containerPadding = 16; // Container padding (px-3 py-2 = 12px + 4px)
+		const containerPadding = 24; // Enhanced container padding (px-3 py-3 = 12px + 12px)
 		const spaceBetweenFields = 6; // space-y-1.5 = 6px
-		const minFieldsHeight = 60; // Minimum height for "No fields yet" state
+		const minFieldsHeight = 70; // Minimum height for enhanced "No fields yet" state
 
 		if (data.fields.length === 0) {
 			return headerHeight + minFieldsHeight;
@@ -289,9 +294,9 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 
 	// Determine if we need scrolling (when hitting max height)
 	const needsScrolling = () => {
-		const headerHeight = 80;
+		const headerHeight = 88; // Enhanced header height
 		const fieldHeight = 36;
-		const containerPadding = 16;
+		const containerPadding = 24; // Enhanced container padding
 		const spaceBetweenFields = 6;
 		const maxHeight = 500;
 
@@ -379,46 +384,69 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 
 	return (
 		<div
-			className={`rounded-lg shadow-lg border min-w-64 max-w-80 hover:border-blue-400 transition-colors cursor-pointer relative ${
+			className={`rounded-xl shadow-xl border backdrop-blur-sm min-w-64 max-w-80 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative group ${
 				isDark
-					? 'bg-gray-800 border-blue-400 text-white'
-					: 'bg-white border-blue-200 text-gray-800'
+					? 'bg-gray-800/90 border-gray-700 hover:border-blue-400 text-white shadow-gray-900/20'
+					: 'bg-white/95 border-gray-200 hover:border-blue-400 text-gray-800 shadow-gray-500/20'
 			}`}
 			style={dynamicStyles}
 			onContextMenu={handleContextMenu}
 			onClick={handleClick}
 			onMouseDown={handleMouseDown}
 		>
-			{/* Collection Header */}
+			{/* Enhanced Collection Header */}
 			<div
-				className={`px-4 py-3 border-b ${
-					isDark ? 'border-gray-600' : 'border-gray-200'
+				className={`px-4 py-4 border-b relative overflow-hidden ${
+					isDark ? 'border-gray-700' : 'border-gray-200'
 				}`}
 			>
-				<div className="flex items-center justify-center gap-2 mb-1">
-					<Database className="w-4 h-4" />
-					<span className="font-semibold text-lg">{data.name}</span>
-				</div>
-				<div
-					className={`text-center text-sm ${
-						isDark ? 'text-gray-400' : 'text-gray-500'
-					}`}
-				>
-					{data.fields.length} field
-					{data.fields.length !== 1 ? 's' : ''}
+				{/* Header Background Gradient */}
+				<div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50 group-hover:opacity-80 transition-opacity duration-300"></div>
+				
+				<div className="relative z-10">
+					<div className="flex items-center justify-center gap-2 mb-2">
+						<div className={`p-1.5 rounded-lg ${
+							isDark 
+								? 'bg-blue-500/20 text-blue-400' 
+								: 'bg-blue-100 text-blue-600'
+						}`}>
+							<Database className="w-4 h-4" />
+						</div>
+						<span className="font-bold text-lg tracking-wide">{data.name}</span>
+					</div>
+					<div className="flex items-center justify-center gap-2">
+						<div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+							isDark 
+								? 'bg-gray-700 text-gray-300' 
+								: 'bg-gray-100 text-gray-600'
+						}`}>
+							<span>{data.fields.length}</span>
+							<span>field{data.fields.length !== 1 ? 's' : ''}</span>
+						</div>
+						{data.fields.some(f => f.type === 'objectId') && (
+							<div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+								isDark 
+									? 'bg-purple-500/20 text-purple-400' 
+									: 'bg-purple-100 text-purple-600'
+							}`}>
+								<Link className="w-3 h-3" />
+								<span>refs</span>
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 
-			{/* Fields List */}
+			{/* Enhanced Fields List */}
 			<div
-				className={`px-3 py-2 ${
+				className={`px-3 py-3 ${
 					showScrolling
 						? 'overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent hover:scrollbar-thumb-gray-500'
 						: 'overflow-hidden'
 				}`}
 				style={{
 					height: showScrolling
-						? `${collectionHeight - 80}px` // Subtract header height
+						? `${collectionHeight - 88}px` // Adjusted for new header height
 						: 'auto',
 				}}
 			>
@@ -499,12 +527,18 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 						})}
 					</div>
 				) : (
-					<div
-						className={`text-center py-4 text-sm ${
-							isDark ? 'text-gray-500' : 'text-gray-400'
-						}`}
-					>
-						No fields yet
+					<div className={`text-center py-6 ${
+						isDark ? 'text-gray-400' : 'text-gray-500'
+					}`}>
+						<div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 ${
+							isDark 
+								? 'bg-gray-700/50 border border-gray-600' 
+								: 'bg-gray-100 border border-gray-200'
+						}`}>
+							<Plus className="w-5 h-5" />
+						</div>
+						<p className="text-sm font-medium mb-1">No fields yet</p>
+						<p className="text-xs opacity-75">Right-click to add fields</p>
 					</div>
 				)}
 			</div>

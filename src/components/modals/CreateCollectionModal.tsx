@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useTheme } from 'next-themes';
-import { X, Clock } from 'lucide-react';
+import { useThemeContext } from '@/contexts/ThemeContext';
+import { X, Clock, Database, Sparkles, CheckCircle } from 'lucide-react';
 import type { CreateCollectionModalProps } from '@/types';
 
 export default function CreateCollectionModal({
@@ -15,8 +15,7 @@ export default function CreateCollectionModal({
 	onClose,
 	onCreateCollection,
 }: CreateCollectionModalProps) {
-	const { theme } = useTheme();
-	const isDark = theme === 'dark';
+	const { isDark } = useThemeContext();
 
 	const [collectionName, setCollectionName] = useState('');
 	const [includeTimestamps, setIncludeTimestamps] = useState(true);
@@ -124,18 +123,18 @@ export default function CreateCollectionModal({
 
 	return (
 		<>
-			{/* Backdrop */}
+			{/* Enhanced Backdrop */}
 			<div
-				className="fixed inset-0 bg-black/30 z-40"
+				className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300"
 				onClick={handleClose}
 			/>
 
-			{/* Modal Card */}
+			{/* Enhanced Modal Card */}
 			<div
-				className={`w-80 max-w-sm rounded-xl shadow-2xl border backdrop-blur-sm z-50 ${
+				className={`w-96 max-w-sm rounded-2xl shadow-2xl border z-50 transform transition-all duration-300 scale-100 backdrop-blur-xl ${
 					isDark
-						? 'bg-gray-800/95 border-gray-600 text-white'
-						: 'bg-white/95 border-gray-200 text-gray-900'
+						? 'bg-gray-900/95 border-gray-700/50 text-white shadow-gray-900/50'
+						: 'bg-white/95 border-gray-200/50 text-gray-900 shadow-gray-500/20'
 				} ${isPositioned ? 'fixed' : 'relative'}`}
 				style={
 					isPositioned
@@ -148,161 +147,200 @@ export default function CreateCollectionModal({
 							}
 				}
 			>
-				{/* Card Header */}
-				<div
-					className={`p-4 border-b ${
-						isDark ? 'border-gray-600' : 'border-gray-200'
-					}`}
-				>
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-2">
-							<div
-								className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-									isDark
-										? 'bg-blue-500/20 text-blue-400'
-										: 'bg-blue-50 text-blue-600'
-								}`}
-							>
-								📦
+				{/* Enhanced Header with Gradient */}
+				<div className={`relative p-6 border-b overflow-hidden ${
+					isDark ? 'border-gray-700/50' : 'border-gray-200/50'
+				}`}>
+					{/* Header Background Gradient */}
+					<div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50"></div>
+					
+					<div className="relative z-10 flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+								isDark
+									? 'bg-gradient-to-r from-blue-500/20 to-purple-600/20 border border-blue-400/30'
+									: 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200'
+							}`}>
+								<Database className="w-6 h-6 text-blue-500" />
 							</div>
-							<h2 className="text-lg font-semibold">
-								New Collection
-							</h2>
+							<div>
+								<h2 className="text-xl font-bold tracking-tight">
+									Create Collection
+								</h2>
+								<p className={`text-sm ${
+									isDark ? 'text-gray-400' : 'text-gray-500'
+								}`}>
+									Define a new MongoDB collection
+								</p>
+							</div>
 						</div>
 						<Button
 							variant="ghost"
 							size="icon"
 							onClick={handleClose}
-							className={`h-8 w-8 rounded-lg ${
+							className={`h-10 w-10 rounded-xl transition-all duration-200 ${
 								isDark
-									? 'hover:bg-gray-700'
-									: 'hover:bg-gray-100'
+									? 'hover:bg-gray-800 text-gray-400 hover:text-white'
+									: 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
 							}`}
 						>
-							<X className="w-4 h-4" />
+							<X className="w-5 h-5" />
 						</Button>
 					</div>
 				</div>
 
-				{/* Card Content */}
-				<div className="p-4">
-					<form onSubmit={handleSubmit} className="space-y-4">
-						<div>
+				{/* Enhanced Content */}
+				<div className="p-6">
+					<form onSubmit={handleSubmit} className="space-y-6">
+						{/* Collection Name Section */}
+						<div className="space-y-3">
 							<Label
 								htmlFor="collectionName"
-								className="text-sm font-medium"
+								className="text-sm font-semibold flex items-center gap-2"
 							>
+								<Sparkles className="w-4 h-4 text-blue-500" />
 								Collection Name
 							</Label>
-							<Input
-								id="collectionName"
-								type="text"
-								value={collectionName}
-								onChange={handleNameChange}
-								placeholder="Enter collection name (no spaces)"
-								className={`${isDark ? 'bg-gray-700 border-gray-600' : ''} ${
-									nameError ? 'border-red-500' : ''
-								}`}
-								autoFocus
-							/>
-							{nameError && (
-								<p className="text-red-500 text-xs mt-1">
-									{nameError}
-								</p>
-							)}
-						</div>
-
-						{/* Timestamp Options */}
-						<div
-							className={`p-3 rounded-lg border ${
-								isDark
-									? 'border-gray-600 bg-gray-700/30'
-									: 'border-gray-200 bg-gray-50'
-							}`}
-						>
-							<div className="flex items-center justify-between mb-3">
-								<div className="flex items-center gap-2">
-									<Clock className="w-4 h-4" />
-									<Label
-										htmlFor="includeTimestamps"
-										className="text-sm font-medium"
-									>
-										Include Timestamps
-									</Label>
-								</div>
-								<Switch
-									id="includeTimestamps"
-									checked={includeTimestamps}
-									onCheckedChange={setIncludeTimestamps}
+							<div className="space-y-2">
+								<Input
+									id="collectionName"
+									type="text"
+									value={collectionName}
+									onChange={handleNameChange}
+									placeholder="e.g., users, products, orders"
+									className={`h-12 rounded-xl border-2 transition-all duration-200 font-medium ${
+										nameError
+											? 'border-red-300 dark:border-red-700 focus:border-red-500 dark:focus:border-red-400'
+											: 'border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-300 dark:hover:border-gray-600'
+									} ${
+										isDark
+											? 'bg-gray-800/50 text-white placeholder-gray-400'
+											: 'bg-gray-50/50 text-gray-900 placeholder-gray-500'
+									}`}
+									autoFocus
+									required
 								/>
-							</div>
-
-							{includeTimestamps && (
-								<div className="space-y-2 ml-6">
-									<div className="flex items-center justify-between">
-										<Label
-											htmlFor="includeCreatedAt"
-											className="text-sm"
-										>
-											createdAt field
-										</Label>
-										<Switch
-											id="includeCreatedAt"
-											checked={includeCreatedAt}
-											onCheckedChange={
-												setIncludeCreatedAt
-											}
-										/>
-									</div>
-									<div className="flex items-center justify-between">
-										<Label
-											htmlFor="includeUpdatedAt"
-											className="text-sm"
-										>
-											updatedAt field
-										</Label>
-										<Switch
-											id="includeUpdatedAt"
-											checked={includeUpdatedAt}
-											onCheckedChange={
-												setIncludeUpdatedAt
-											}
-										/>
-									</div>
-								</div>
-							)}
-
-							{/* Info about automatic _id field */}
-							<div
-								className={`mt-3 pt-3 border-t text-xs ${
-									isDark
-										? 'border-gray-600 text-gray-400'
-										: 'border-gray-200 text-gray-500'
-								}`}
-							>
-								💡 An{' '}
-								<code className="px-1 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-									_id
-								</code>{' '}
-								field (ObjectId) will be automatically added
+								{nameError && (
+									<p className="text-sm text-red-500 dark:text-red-400 flex items-center gap-1">
+										<X className="w-3 h-3" />
+										{nameError}
+									</p>
+								)}
+								{collectionName && !nameError && (
+									<p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+										<CheckCircle className="w-3 h-3" />
+										Valid collection name
+									</p>
+								)}
 							</div>
 						</div>
 
+						{/* Timestamp Configuration Section */}
+						<div className={`p-4 rounded-xl border-2 border-dashed transition-all duration-200 ${
+							isDark 
+								? 'border-gray-700 bg-gray-800/30 hover:border-gray-600' 
+								: 'border-gray-200 bg-gray-50/50 hover:border-gray-300'
+						}`}>
+							<div className="flex items-center gap-2 mb-4">
+								<Clock className="w-4 h-4 text-amber-500" />
+								<Label className="text-sm font-semibold">
+									Timestamp Configuration
+								</Label>
+							</div>
+							
+							<div className="space-y-4">
+								<div className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+									isDark 
+										? 'bg-gray-700/50 border-gray-600/50 hover:bg-gray-700' 
+										: 'bg-white/50 border-gray-200/50 hover:bg-white'
+								}`}>
+									<div>
+										<div className="font-medium text-sm">Auto Timestamps</div>
+										<div className={`text-xs ${
+											isDark ? 'text-gray-400' : 'text-gray-500'
+										}`}>
+											Automatically manage createdAt and updatedAt
+										</div>
+									</div>
+									<Switch
+										checked={includeTimestamps}
+										onCheckedChange={setIncludeTimestamps}
+										className="data-[state=checked]:bg-blue-500"
+									/>
+								</div>
+
+								{includeTimestamps && (
+									<div className="space-y-3 pl-4 border-l-2 border-blue-200 dark:border-blue-700 transition-all duration-300">
+										<div className="flex items-center justify-between">
+											<div className="flex items-center gap-2">
+												<div className="w-2 h-2 rounded-full bg-green-500"></div>
+												<span className="text-sm font-medium">createdAt</span>
+											</div>
+											<Switch
+												checked={includeCreatedAt}
+												onCheckedChange={setIncludeCreatedAt}
+												className="data-[state=checked]:bg-green-500"
+											/>
+										</div>
+										<div className="flex items-center justify-between">
+											<div className="flex items-center gap-2">
+												<div className="w-2 h-2 rounded-full bg-orange-500"></div>
+												<span className="text-sm font-medium">updatedAt</span>
+											</div>
+											<Switch
+												checked={includeUpdatedAt}
+												onCheckedChange={setIncludeUpdatedAt}
+												className="data-[state=checked]:bg-orange-500"
+											/>
+										</div>
+									</div>
+								)}
+							</div>
+
+							{/* Enhanced Info Section */}
+							<div className={`mt-4 pt-4 border-t text-xs rounded-lg p-3 ${
+								isDark
+									? 'border-gray-600 bg-blue-900/20 text-blue-300'
+									: 'border-gray-200 bg-blue-50/50 text-blue-600'
+							}`}>
+								<div className="flex items-center gap-2">
+									<Sparkles className="w-3 h-3" />
+									<span className="font-medium">Auto-generated field:</span>
+								</div>
+								<div className="mt-1 flex items-center gap-1">
+									<code className={`px-2 py-1 rounded font-mono text-xs ${
+										isDark
+											? 'bg-gray-800 text-blue-400 border border-gray-700'
+											: 'bg-white text-blue-700 border border-blue-200'
+									}`}>
+										_id
+									</code>
+									<span>ObjectId field will be automatically added</span>
+								</div>
+							</div>
+						</div>
+
+						{/* Enhanced Action Buttons */}
 						<div className="flex gap-3 pt-2">
 							<Button
 								type="button"
 								variant="outline"
 								onClick={handleClose}
-								className="flex-1"
+								className={`flex-1 h-12 rounded-xl font-medium transition-all duration-200 ${
+									isDark
+										? 'border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-500'
+										: 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400'
+								}`}
 							>
 								Cancel
 							</Button>
 							<Button
 								type="submit"
-								className="flex-1"
 								disabled={!collectionName.trim() || !!nameError}
+								className="flex-1 h-12 rounded-xl font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg disabled:from-gray-400 disabled:to-gray-500"
 							>
-								Create
+								<Database className="w-4 h-4 mr-2" />
+								Create Collection
 							</Button>
 						</div>
 					</form>

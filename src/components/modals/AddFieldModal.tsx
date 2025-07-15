@@ -12,18 +12,31 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useTheme } from 'next-themes';
-import { X, Plus } from 'lucide-react';
+import { useThemeContext } from '@/contexts/ThemeContext';
+import { 
+	X, 
+	Plus, 
+	Type, 
+	Hash, 
+	ToggleLeft, 
+	Calendar, 
+	List, 
+	Braces, 
+	ExternalLink,
+	Sparkles,
+	CheckCircle,
+	AlertTriangle
+} from 'lucide-react';
 import type { AddFieldModalProps } from '@/types';
 
 const fieldTypes = [
-	'string',
-	'number',
-	'boolean',
-	'date',
-	'array',
-	'object',
-	'objectId',
+	{ value: 'string', label: 'String', icon: Type, description: 'Text data' },
+	{ value: 'number', label: 'Number', icon: Hash, description: 'Numeric values' },
+	{ value: 'boolean', label: 'Boolean', icon: ToggleLeft, description: 'True/false values' },
+	{ value: 'date', label: 'Date', icon: Calendar, description: 'Date and time' },
+	{ value: 'array', label: 'Array', icon: List, description: 'List of values' },
+	{ value: 'object', label: 'Object', icon: Braces, description: 'Nested document' },
+	{ value: 'objectId', label: 'ObjectId', icon: ExternalLink, description: 'Reference to another collection' },
 ];
 
 export default function AddFieldModal({
@@ -33,8 +46,7 @@ export default function AddFieldModal({
 	onClose,
 	onAddField,
 }: AddFieldModalProps) {
-	const { theme } = useTheme();
-	const isDark = theme === 'dark';
+	const { isDark } = useThemeContext();
 
 	const [fieldName, setFieldName] = useState('');
 	const [fieldType, setFieldType] = useState('string');
@@ -248,12 +260,24 @@ export default function AddFieldModal({
 									<SelectValue placeholder="Select field type" />
 								</SelectTrigger>
 								<SelectContent>
-									{fieldTypes.map((type) => (
-										<SelectItem key={type} value={type}>
-											{type.charAt(0).toUpperCase() +
-												type.slice(1)}
-										</SelectItem>
-									))}
+									{fieldTypes.map((type) => {
+										const IconComponent = type.icon;
+										return (
+											<SelectItem key={type.value} value={type.value}>
+												<div className="flex items-center gap-2">
+													<IconComponent className="w-4 h-4" />
+													<div>
+														<div className="font-medium">{type.label}</div>
+														<div className={`text-xs ${
+															isDark ? 'text-gray-400' : 'text-gray-500'
+														}`}>
+															{type.description}
+														</div>
+													</div>
+												</div>
+											</SelectItem>
+										);
+									})}
 								</SelectContent>
 							</Select>
 						</div>

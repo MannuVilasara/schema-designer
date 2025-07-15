@@ -732,62 +732,157 @@ export default function HomePage() {
 	);
 
 	return (
-		<div className="min-h-screen">
+		<div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300">
+			{/* Enhanced Navigation */}
 			<Navbar scrollY={scrollY} />
-			<div
-				className={`h-screen w-full flex pt-16 ${
-					isDark ? 'bg-gray-900' : 'bg-gray-50'
-				}`}
-			>
-			<Dock />
-			<div className="flex-1 relative">
-				<div className="h-full w-full pb-14">
-					<ReactFlow
-						nodes={nodes}
-						edges={edges}
-						nodeTypes={{ collectionNode: CollectionNode }}
-						edgeTypes={{ custom: CustomEdge }}
-						onNodesChange={onNodesChange}
-						onConnect={onConnect}
-						onPaneContextMenu={handleEmptyAreaContextMenu}
-						onPaneClick={handleClick}
-						fitView
-						className="h-full w-full"
-						defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-						minZoom={0.1}
-						maxZoom={3}
-						attributionPosition="bottom-left"
-						nodesDraggable={true}
-						nodesConnectable={true}
-						elementsSelectable={true}
-						snapToGrid={false}
-						snapGrid={[1, 1]}
-						deleteKeyCode={null}
-						multiSelectionKeyCode={null}
-						preventScrolling={false}
-						zoomOnScroll={true}
-						zoomOnPinch={true}
-						panOnScroll={false}
-						panOnScrollSpeed={0.5}
-						zoomOnDoubleClick={false}
-						proOptions={{ hideAttribution: true }}
-					>
-						<Background
-							color={isDark ? '#374151' : '#94a3b8'}
-							gap={20}
-							size={1}
-							style={{
-								backgroundColor: isDark ? '#1f2937' : '#f8fafc',
-							}}
-						/>
-						<Controls position="top-right" />
-					</ReactFlow>
+			
+			{/* Main Designer Container */}
+			<div className="h-screen w-full flex pt-16 relative">
+				{/* Enhanced Dock */}
+				<div className="z-40">
+					<Dock />
 				</div>
+				
+				{/* Main Canvas Area */}
+				<div className="flex-1 relative overflow-hidden">
+					{/* Canvas Header */}
+					<div className="absolute top-4 left-4 right-4 z-30 flex items-center justify-between">
+						<div className="flex items-center space-x-4">
+							{/* Workspace Title */}
+							<div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg px-4 py-2 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+								<h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+									Schema Designer
+								</h1>
+								<p className="text-sm text-gray-500 dark:text-gray-400">
+									{collections.length} collection{collections.length !== 1 ? 's' : ''}
+								</p>
+							</div>
+							
+							{/* Quick Stats */}
+							<div className="hidden md:flex items-center space-x-3">
+								<div className="bg-blue-50/80 dark:bg-blue-900/30 backdrop-blur-sm rounded-lg px-3 py-2 border border-blue-200/50 dark:border-blue-700/50">
+									<div className="flex items-center space-x-2">
+										<div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+										<span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+											{connections.length} connection{connections.length !== 1 ? 's' : ''}
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
 
-				<BottomDock />
+						{/* Canvas Controls */}
+						<div className="flex items-center space-x-2">
+							<button 
+								onClick={() => handleCreateCollection()}
+								className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
+							>
+								<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+								</svg>
+								<span>Add Collection</span>
+							</button>
+						</div>
+					</div>
+
+					{/* Main Canvas */}
+					<div className="h-full w-full pb-14 pt-20">
+						<ReactFlow
+							nodes={nodes}
+							edges={edges}
+							nodeTypes={{ collectionNode: CollectionNode }}
+							edgeTypes={{ custom: CustomEdge }}
+							onNodesChange={onNodesChange}
+							onConnect={onConnect}
+							onPaneContextMenu={handleEmptyAreaContextMenu}
+							onPaneClick={handleClick}
+							fitView
+							className="h-full w-full rounded-lg"
+							defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+							minZoom={0.1}
+							maxZoom={3}
+							attributionPosition="bottom-left"
+							nodesDraggable={true}
+							nodesConnectable={true}
+							elementsSelectable={true}
+							snapToGrid={false}
+							snapGrid={[1, 1]}
+							deleteKeyCode={null}
+							multiSelectionKeyCode={null}
+							preventScrolling={false}
+							zoomOnScroll={true}
+							zoomOnPinch={true}
+							panOnScroll={false}
+							panOnScrollSpeed={0.5}
+							zoomOnDoubleClick={false}
+							proOptions={{ hideAttribution: true }}
+						>
+							{/* Enhanced Background */}
+							<Background
+								color={isDark ? '#374151' : '#94a3b8'}
+								gap={20}
+								size={1}
+								style={{
+									backgroundColor: isDark ? '#111827' : '#f1f5f9',
+								}}
+							/>
+							
+							{/* Enhanced Controls */}
+							<Controls 
+								position="top-right" 
+								className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-lg shadow-lg"
+								style={{
+									top: '80px',
+									right: '16px'
+								}}
+							/>
+						</ReactFlow>
+					</div>
+
+					{/* Enhanced Bottom Dock */}
+					<div className="absolute bottom-0 left-0 right-0 z-30">
+						<BottomDock />
+					</div>
+
+					{/* Empty State */}
+					{collections.length === 0 && (
+						<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+							<div className="text-center max-w-md mx-auto px-6">
+								<div className="mb-6">
+									<div className="w-24 h-24 mx-auto bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl flex items-center justify-center mb-4">
+										<svg className="w-12 h-12 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+										</svg>
+									</div>
+								</div>
+								<h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+									Start Building Your Schema
+								</h3>
+								<p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+									Create your first collection to begin designing your MongoDB schema. 
+									Right-click anywhere on the canvas or use the button above.
+								</p>
+								<div className="space-y-3 text-sm text-gray-500 dark:text-gray-500">
+									<div className="flex items-center justify-center space-x-2">
+										<div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+										<span>Right-click to create collections</span>
+									</div>
+									<div className="flex items-center justify-center space-x-2">
+										<div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+										<span>Drag to connect ObjectId fields</span>
+									</div>
+									<div className="flex items-center justify-center space-x-2">
+										<div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+										<span>Generate code for your schemas</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					)}
+				</div>
 			</div>
 
-			{/* Context Menu */}
+			{/* Enhanced Context Menu */}
 			{contextMenu && (
 				<ContextMenu
 					x={contextMenu.x}
@@ -804,7 +899,7 @@ export default function HomePage() {
 				/>
 			)}
 
-			{/* Add Field Modal */}
+			{/* Enhanced Modals */}
 			<AddFieldModal
 				isOpen={addFieldModal.isOpen}
 				collectionName={addFieldModal.collectionName}
@@ -813,7 +908,6 @@ export default function HomePage() {
 				onAddField={handleAddFieldSubmit}
 			/>
 
-			{/* Confirm Delete Dialog */}
 			<ConfirmDialog
 				isOpen={confirmDelete.isOpen}
 				title="Delete Collection"
@@ -823,7 +917,6 @@ export default function HomePage() {
 				onCancel={cancelDelete}
 			/>
 
-			{/* Create Collection Modal */}
 			<CreateCollectionModal
 				isOpen={createCollectionModal.isOpen}
 				position={createCollectionModal.position}
@@ -831,7 +924,6 @@ export default function HomePage() {
 				onCreateCollection={handleCreateCollectionSubmit}
 			/>
 
-			{/* Field Context Menu */}
 			{fieldContextMenu && (
 				<FieldContextMenu
 					x={fieldContextMenu.x}
@@ -846,7 +938,6 @@ export default function HomePage() {
 				/>
 			)}
 
-			{/* Edit Field Modal */}
 			<EditFieldModal
 				isOpen={editFieldModal.isOpen}
 				field={editFieldModal.field}
@@ -855,7 +946,6 @@ export default function HomePage() {
 				onSave={handleEditFieldSubmit}
 			/>
 
-			{/* Confirm Field Delete Dialog */}
 			<ConfirmFieldDeleteDialog
 				isOpen={confirmFieldDelete.isOpen}
 				fieldName={confirmFieldDelete.fieldName}
@@ -864,7 +954,6 @@ export default function HomePage() {
 				onCancel={cancelFieldDelete}
 			/>
 
-			{/* Edit Collection Modal */}
 			<EditCollectionModal
 				isOpen={editCollectionModal.isOpen}
 				collection={editCollectionModal.collection}
@@ -873,13 +962,12 @@ export default function HomePage() {
 				onSave={handleEditCollectionSubmit}
 			/>
 
-			{/* Code Sidebar */}
+			{/* Enhanced Code Sidebar */}
 			<CodeSidebar
 				isOpen={codeSidebar.isOpen}
 				selectedCollectionId={codeSidebar.selectedCollectionId}
 				onClose={handleCloseCodeSidebar}
 			/>
-		</div>
 		</div>
 	);
 }
