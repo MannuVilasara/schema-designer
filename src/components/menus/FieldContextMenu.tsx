@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import { Edit3, Trash2, Plus } from 'lucide-react';
 import type { FieldContextMenuProps } from '@/types';
 
@@ -16,9 +16,8 @@ export default function FieldContextMenu({
 	onDeleteField,
 	onAddField,
 }: FieldContextMenuProps) {
-	const { theme } = useTheme();
-	const isDark = theme === 'dark';
 	const menuRef = useRef<HTMLDivElement>(null);
+	const { isDark } = useThemeContext();
 
 	// Position the menu and handle edge cases
 	const getMenuStyle = () => {

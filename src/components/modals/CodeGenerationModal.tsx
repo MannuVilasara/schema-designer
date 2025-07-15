@@ -4,19 +4,13 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import {
-	Copy,
-	Download,
-	X,
-	Code2,
-	FileCode,
-	Sparkles,
-} from 'lucide-react';
+import { Copy, Download, X, Code2, FileCode, Sparkles } from 'lucide-react';
 import { Button } from '../ui/button';
 import { generateCode, ORM, ORM_LABELS, CODE_GENERATORS } from '@/generators';
 import { useSchemaStore } from '@/store/schemaStore';
 import { useTheme } from 'next-themes';
 import toast from 'react-hot-toast';
+import { useThemeContext } from '@/contexts/ThemeContext';
 
 interface CodeGenerationModalProps {
 	isOpen: boolean;
@@ -33,13 +27,7 @@ export default function CodeGenerationModal({
 	const { collections, connections } = useSchemaStore();
 	const { resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
-
-	// Only run on client side after hydration
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	const isDark = mounted ? resolvedTheme === 'dark' : true;
+	const { isDark } = useThemeContext();
 
 	const selectedCollection = useMemo(() => {
 		return collections.find((col) => col.id === selectedCollectionId);
@@ -193,7 +181,9 @@ export default function CodeGenerationModal({
 														: 'text-gray-600'
 												}`}
 											>
-												Generate {ORM_LABELS[selectedORM]} schema for {selectedCollection.name}
+												Generate{' '}
+												{ORM_LABELS[selectedORM]} schema
+												for {selectedCollection.name}
 											</p>
 										</div>
 									</div>

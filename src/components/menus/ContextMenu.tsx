@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { useTheme } from 'next-themes';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import { Trash2, Copy, Plus, Edit3, Code2 } from 'lucide-react';
 import type { ContextMenuProps } from '@/types';
 
@@ -19,8 +19,7 @@ export default function ContextMenu({
 	onCreateCollection,
 	onGenerateCode,
 }: ContextMenuProps) {
-	const { theme } = useTheme();
-	const isDark = theme === 'dark';
+	const { isDark } = useThemeContext();
 	const menuRef = useRef<HTMLDivElement>(null);
 
 	const isEmptyArea = !collectionId;
