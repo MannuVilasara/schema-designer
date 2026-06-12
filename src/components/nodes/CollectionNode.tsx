@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Handle, Position } from 'reactflow';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { useSchemaStore } from '@/store/schemaStore';
@@ -13,13 +13,11 @@ import {
 	List,
 	Braces,
 	ExternalLink,
-	Database,
-	Link,
-	X,
+	Key,
 	ChevronUp,
 	ChevronDown,
-	Sparkles,
-	Key,
+	Link,
+	X,
 	Plus,
 } from 'lucide-react';
 import type { CollectionNodeProps } from '@/types';
@@ -40,13 +38,13 @@ interface FieldItemProps {
 	) => void;
 	handleRemoveConnection: (e: React.MouseEvent, connectionId: string) => void;
 	isTimestampField: boolean;
+	isIdField: boolean;
 	canMoveUp: boolean;
 	canMoveDown: boolean;
 	onMoveUp: () => void;
 	onMoveDown: () => void;
 }
 
-// Field Item Component
 function FieldItem({
 	field,
 	index,
@@ -59,58 +57,61 @@ function FieldItem({
 	handleFieldContextMenu,
 	handleRemoveConnection,
 	isTimestampField,
+	isIdField,
 	canMoveUp,
 	canMoveDown,
 	onMoveUp,
 	onMoveDown,
 }: FieldItemProps) {
-	const isIdField = field.name === '_id';
-	const isObjectIdField = field.type === 'objectId';
+	const isObjectIdField =
+		field.type === 'objectId' || field.type === 'uuid';
 	const fieldConnections = getFieldConnections(data.name, field.name);
 	const hasConnections = fieldConnections.length > 0;
 	const canAcceptMoreConnections = isIdField || fieldConnections.length === 0;
 
 	return (
 		<div
-			className={`relative flex items-center justify-between py-2 px-2 rounded-md text-xs ${
+			className={`relative flex items-center justify-between py-1.5 px-2 rounded text-xs ${
 				isTimestampField
-					? 'cursor-default opacity-75'
+					? 'cursor-default'
 					: 'cursor-pointer'
 			} ${
-				isIdField
-					? isDark
-						? 'bg-blue-900/30 hover:bg-blue-900/50 border border-blue-700/50'
-						: 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
-					: isTimestampField
-						? isDark
-							? 'bg-amber-900/30 border border-amber-700/50'
-							: 'bg-amber-50 border border-amber-200'
-						: isDark
-							? 'bg-gray-700/50 hover:bg-gray-700'
-							: 'bg-gray-50 hover:bg-gray-100'
+				isDark
+					? isIdField
+						? 'bg-[#1a1a1a]'
+						: isTimestampField
+							? 'bg-[#141414]'
+							: 'hover:bg-[#1a1a1a]'
+					: isIdField
+						? 'bg-[#f7f7f7]'
+						: isTimestampField
+							? 'bg-[#fafafa]'
+							: 'hover:bg-[#f7f7f7]'
 			}`}
 			style={{ transition: 'none' }}
 			onClick={handleClick}
 			onMouseDown={handleMouseDown}
 			onContextMenu={(e) => handleFieldContextMenu(e, index, field.name)}
 		>
-			{/* Arrow controls for non-timestamp, non-ID fields */}
+			{/* Reorder controls */}
 			{!isTimestampField && !isIdField && (
-				<div className="flex items-center mr-1">
+				<div className="flex flex-col items-center mr-1 gap-0">
 					<button
 						onClick={(e) => {
 							e.stopPropagation();
 							onMoveUp();
 						}}
 						disabled={!canMoveUp}
-						className={`p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
+						className={`p-0 rounded ${
 							!canMoveUp
-								? 'opacity-30 cursor-not-allowed'
-								: 'opacity-40 hover:opacity-80'
+								? 'opacity-20 cursor-not-allowed'
+								: isDark
+									? 'opacity-30 hover:opacity-70 text-[#a3a3a3]'
+									: 'opacity-30 hover:opacity-70 text-[#737373]'
 						}`}
 						style={{ transition: 'none' }}
 					>
-						<ChevronUp className="w-2 h-2" />
+						<ChevronUp className="w-2.5 h-2.5" />
 					</button>
 					<button
 						onClick={(e) => {
@@ -118,55 +119,75 @@ function FieldItem({
 							onMoveDown();
 						}}
 						disabled={!canMoveDown}
-						className={`p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
+						className={`p-0 rounded ${
 							!canMoveDown
-								? 'opacity-30 cursor-not-allowed'
-								: 'opacity-40 hover:opacity-80'
+								? 'opacity-20 cursor-not-allowed'
+								: isDark
+									? 'opacity-30 hover:opacity-70 text-[#a3a3a3]'
+									: 'opacity-30 hover:opacity-70 text-[#737373]'
 						}`}
 						style={{ transition: 'none' }}
 					>
-						<ChevronDown className="w-2 h-2" />
+						<ChevronDown className="w-2.5 h-2.5" />
 					</button>
 				</div>
 			)}
 
-			{/* Left connection handle for objectId fields */}
+			{/* Connection handles for ref fields */}
 			{isObjectIdField && (
 				<Handle
 					type="target"
 					position={Position.Left}
 					id={`${data.id}-field-${index}-target`}
-					className={`absolute left-0 top-1/2 transform -translate-y-1/2 w-3 h-3 border-2 border-white ${
+					className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 border-2 rounded-full ${
+						isDark
+							? 'border-[#262626]'
+							: 'border-[#e5e5e5]'
+					} ${
 						canAcceptMoreConnections
 							? hasConnections
-								? 'bg-green-500 hover:bg-green-600'
-								: 'bg-blue-500 hover:bg-blue-600'
-							: 'bg-gray-400 cursor-not-allowed'
+								? isDark
+									? 'bg-[#a3a3a3]'
+									: 'bg-[#525252]'
+								: isDark
+									? 'bg-[#525252]'
+									: 'bg-[#a3a3a3]'
+							: isDark
+								? 'bg-[#333] cursor-not-allowed'
+								: 'bg-[#d4d4d4] cursor-not-allowed'
 					}`}
 					style={{
-						left: '-6px',
+						left: '-5px',
 						zIndex: 10,
 						transition: 'none',
 					}}
 					isConnectable={canAcceptMoreConnections}
 				/>
 			)}
-
-			{/* Right connection handle for objectId fields */}
 			{isObjectIdField && (
 				<Handle
 					type="source"
 					position={Position.Right}
 					id={`${data.id}-field-${index}-source`}
-					className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 border-2 border-white ${
+					className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 border-2 rounded-full ${
+						isDark
+							? 'border-[#262626]'
+							: 'border-[#e5e5e5]'
+					} ${
 						canAcceptMoreConnections
 							? hasConnections
-								? 'bg-green-500 hover:bg-green-600'
-								: 'bg-blue-500 hover:bg-blue-600'
-							: 'bg-gray-400 cursor-not-allowed'
+								? isDark
+									? 'bg-[#a3a3a3]'
+									: 'bg-[#525252]'
+								: isDark
+									? 'bg-[#525252]'
+									: 'bg-[#a3a3a3]'
+							: isDark
+								? 'bg-[#333] cursor-not-allowed'
+								: 'bg-[#d4d4d4] cursor-not-allowed'
 					}`}
 					style={{
-						right: '-6px',
+						right: '-5px',
 						zIndex: 10,
 						transition: 'none',
 					}}
@@ -174,47 +195,48 @@ function FieldItem({
 				/>
 			)}
 
-			<div className="flex items-center gap-2 flex-1 min-w-0">
-				<div
-					className={`flex items-center justify-center w-5 h-5 rounded ${
-						isIdField
-							? isDark
-								? 'bg-blue-600 text-blue-100'
-								: 'bg-blue-500 text-white'
-							: isTimestampField
-								? isDark
-									? 'bg-amber-600 text-amber-100'
-									: 'bg-amber-500 text-white'
-								: isDark
-									? 'bg-gray-600 text-gray-300'
-									: 'bg-gray-200 text-gray-600'
-					}`}
-				>
+			<div className="flex items-center gap-1.5 flex-1 min-w-0">
+				<span className={isDark ? 'text-[#525252]' : 'text-[#d4d4d4]'}>
 					{getFieldIcon(field.type)}
-				</div>
+				</span>
 				<span
 					className={`truncate ${
-						isIdField || isTimestampField
-							? 'font-bold'
-							: 'font-medium'
+						isIdField
+							? 'font-semibold'
+							: isTimestampField
+								? isDark
+									? 'text-[#525252] italic'
+									: 'text-[#a3a3a3] italic'
+								: 'font-medium'
 					}`}
 				>
 					{field.name}
 				</span>
-				{field.required && (
-					<span className="text-red-500 text-xs">*</span>
+				{field.required && !isIdField && (
+					<span
+						className={`text-[10px] ${isDark ? 'text-[#525252]' : 'text-[#a3a3a3]'}`}
+					>
+						*
+					</span>
 				)}
 				{isTimestampField && (
-					<span className="text-amber-500 text-xs">(auto)</span>
+					<span
+						className={`text-[10px] ${isDark ? 'text-[#3a3a3a]' : 'text-[#c4c4c4]'}`}
+					>
+						auto
+					</span>
 				)}
 				{/* Connection indicator */}
 				{hasConnections && (
-					<div className="flex items-center gap-1">
-						<Link className="w-3 h-3 text-green-500" />
-						<span className="text-green-500 text-xs">
+					<div className="flex items-center gap-0.5">
+						<Link
+							className={`w-2.5 h-2.5 ${isDark ? 'text-[#737373]' : 'text-[#a3a3a3]'}`}
+						/>
+						<span
+							className={`text-[10px] ${isDark ? 'text-[#737373]' : 'text-[#a3a3a3]'}`}
+						>
 							{fieldConnections.length}
 						</span>
-						{/* Show remove buttons for each connection - only for non-_id fields */}
 						{!isIdField &&
 							fieldConnections.map((connection: any) => (
 								<button
@@ -222,29 +244,25 @@ function FieldItem({
 									onClick={(e) =>
 										handleRemoveConnection(e, connection.id)
 									}
-									className="ml-1 p-0.5 rounded-full bg-red-500 hover:bg-red-600 text-white"
+									className={`ml-0.5 p-0.5 rounded-full transition-colors ${
+										isDark
+											? 'bg-[#262626] hover:bg-[#dc2626] text-[#737373] hover:text-white'
+											: 'bg-[#f0f0f0] hover:bg-[#dc2626] text-[#a3a3a3] hover:text-white'
+									}`}
 									title="Remove connection"
-									style={{ transition: 'none' }}
+									style={{ transition: 'background 0.15s, color 0.15s' }}
 								>
-									<X className="w-2.5 h-2.5" />
+									<X className="w-2 h-2" />
 								</button>
 							))}
 					</div>
 				)}
 			</div>
 			<span
-				className={`text-xs px-1.5 py-0.5 rounded font-mono ${
-					isIdField
-						? isDark
-							? 'bg-blue-500/30 text-blue-200'
-							: 'bg-blue-200 text-blue-800'
-						: isTimestampField
-							? isDark
-								? 'bg-amber-500/30 text-amber-200'
-								: 'bg-amber-200 text-amber-800'
-							: isDark
-								? 'bg-blue-500/20 text-blue-300'
-								: 'bg-blue-100 text-blue-700'
+				className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+					isDark
+						? 'bg-[#1a1a1a] text-[#525252]'
+						: 'bg-[#f5f5f5] text-[#a3a3a3]'
 				}`}
 			>
 				{field.type}
@@ -255,28 +273,27 @@ function FieldItem({
 
 export default function CollectionNode({ data }: CollectionNodeProps) {
 	const { isDark } = useThemeContext();
-	const connections = useSchemaStore((state) => state.connections);
 	const getFieldConnections = useSchemaStore(
 		(state) => state.getFieldConnections
 	);
 	const removeConnection = useSchemaStore((state) => state.removeConnection);
 	const reorderFields = useSchemaStore((state) => state.reorderFields);
+	const dbType = useSchemaStore((state) => state.dbType);
 
-	// isDark is now provided by ThemeContext
+	const idFieldName = dbType === 'postgresql' ? 'id' : '_id';
 
-	// Calculate dynamic height based on field count
+	// Dynamic height
 	const getCollectionHeight = () => {
-		const headerHeight = 88; // Enhanced header section height (was 80)
-		const fieldHeight = 36; // Each field row height (more precise measurement)
-		const containerPadding = 24; // Enhanced container padding (px-3 py-3 = 12px + 12px)
-		const spaceBetweenFields = 6; // space-y-1.5 = 6px
-		const minFieldsHeight = 70; // Minimum height for enhanced "No fields yet" state
+		const headerHeight = 52;
+		const fieldHeight = 32;
+		const containerPadding = 16;
+		const spaceBetweenFields = 4;
+		const minFieldsHeight = 56;
 
 		if (data.fields.length === 0) {
 			return headerHeight + minFieldsHeight;
 		}
 
-		// Calculate total fields height including spaces between them
 		const totalFieldsHeight = data.fields.length * fieldHeight;
 		const totalSpacingHeight = Math.max(
 			0,
@@ -284,29 +301,27 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 		);
 		const fieldsHeight =
 			totalFieldsHeight + totalSpacingHeight + containerPadding;
-		const totalHeight = headerHeight + fieldsHeight;
-
-		// Set reasonable limits: min 140px, max 500px
-		return Math.min(Math.max(totalHeight, 140), 500);
+		return Math.min(Math.max(headerHeight + fieldsHeight, 120), 460);
 	};
 
-	// Determine if we need scrolling (when hitting max height)
 	const needsScrolling = () => {
-		const headerHeight = 88; // Enhanced header height
-		const fieldHeight = 36;
-		const containerPadding = 24; // Enhanced container padding
-		const spaceBetweenFields = 6;
-		const maxHeight = 500;
+		const headerHeight = 52;
+		const fieldHeight = 32;
+		const containerPadding = 16;
+		const spaceBetweenFields = 4;
 
 		const totalFieldsHeight = data.fields.length * fieldHeight;
 		const totalSpacingHeight = Math.max(
 			0,
 			(data.fields.length - 1) * spaceBetweenFields
 		);
-		const fieldsHeight =
-			totalFieldsHeight + totalSpacingHeight + containerPadding;
-
-		return headerHeight + fieldsHeight > maxHeight;
+		return (
+			headerHeight +
+				totalFieldsHeight +
+				totalSpacingHeight +
+				containerPadding >
+			460
+		);
 	};
 
 	const collectionHeight = getCollectionHeight();
@@ -320,29 +335,37 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 	const getFieldIcon = (type: string) => {
 		switch (type) {
 			case 'string':
+			case 'varchar':
+			case 'text':
 				return <Type className="w-3 h-3" />;
 			case 'number':
+			case 'integer':
+			case 'bigint':
+			case 'float':
+			case 'numeric':
+			case 'serial':
+			case 'decimal128':
 				return <Hash className="w-3 h-3" />;
 			case 'boolean':
 				return <ToggleLeft className="w-3 h-3" />;
 			case 'date':
+			case 'timestamp':
 				return <Calendar className="w-3 h-3" />;
 			case 'array':
 				return <List className="w-3 h-3" />;
 			case 'object':
+			case 'json':
+			case 'jsonb':
+			case 'map':
 				return <Braces className="w-3 h-3" />;
 			case 'objectId':
+			case 'uuid':
+				return <Key className="w-3 h-3" />;
+			case 'buffer':
+			case 'bytea':
 				return <ExternalLink className="w-3 h-3" />;
 			default:
 				return <Type className="w-3 h-3" />;
-		}
-	};
-
-	const handleContextMenu = (event: React.MouseEvent) => {
-		event.preventDefault();
-		event.stopPropagation();
-		if (data.onContextMenu) {
-			data.onContextMenu(event, data.id, data.name);
 		}
 	};
 
@@ -377,111 +400,80 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 		event.preventDefault();
 		event.stopPropagation();
 		removeConnection(connectionId);
-		toast.success('Connection removed successfully');
+		toast.success('Connection removed');
 	};
 
 	return (
 		<div
-			className={`rounded-xl shadow-xl border min-w-64 max-w-80 cursor-pointer relative group ${
+			className={`rounded-lg border min-w-60 max-w-72 cursor-pointer relative group ${
 				isDark
-					? 'border-gray-700 hover:border-blue-400 text-white shadow-gray-900/50'
-					: 'border-gray-300 hover:border-blue-500 text-gray-800 shadow-gray-500/30'
+					? 'border-[#262626] hover:border-[#404040] text-white'
+					: 'border-[#e5e5e5] hover:border-[#bbb] text-black'
 			}`}
 			style={{
 				...dynamicStyles,
 				opacity: 1,
 				transition: 'none',
-				backgroundColor: isDark ? '#1f2937' : '#ffffff', // Force theme-based background with hex values
-				color: isDark ? '#ffffff' : '#1f2937', // Ensure text color is also forced
+				backgroundColor: isDark ? '#111111' : '#ffffff',
+				color: isDark ? '#fafafa' : '#0a0a0a',
+				boxShadow: isDark
+					? '0 1px 8px rgba(0,0,0,0.3)'
+					: '0 1px 8px rgba(0,0,0,0.06)',
 			}}
-			onContextMenu={handleContextMenu}
 			onClick={handleClick}
 			onMouseDown={handleMouseDown}
 			suppressHydrationWarning
 		>
-			{/* Enhanced Collection Header */}
+			{/* Header */}
 			<div
-				className={`px-4 py-4 border-b relative overflow-hidden ${
-					isDark ? 'border-gray-700' : 'border-gray-300'
+				className={`px-3 py-2.5 border-b ${
+					isDark ? 'border-[#262626]' : 'border-[#e5e5e5]'
 				}`}
 			>
-				{/* Header Background Gradient */}
-				<div
-					className={`absolute inset-0 ${
-						isDark
-							? 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50'
-							: 'bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5 opacity-70'
-					} group-hover:opacity-80`}
-					style={{ transition: 'none' }}
-				></div>
-
-				<div className="relative z-10">
-					<div className="flex items-center justify-center gap-2 mb-2">
-						<div
-							className={`p-1.5 rounded-lg ${
-								isDark
-									? 'bg-blue-500/20 text-blue-400'
-									: 'bg-blue-100 text-blue-600'
-							}`}
-						>
-							<Database className="w-4 h-4" />
-						</div>
-						<span className="font-bold text-lg tracking-wide">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-2">
+						{data.accentColor && data.accentColor !== 'transparent' && (
+							<div
+								className="w-2 h-2 rounded-full"
+								style={{ backgroundColor: data.accentColor }}
+							/>
+						)}
+						<span className="font-semibold text-sm tracking-tight">
 							{data.name}
 						</span>
 					</div>
-					<div className="flex items-center justify-center gap-2">
-						<div
-							className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-								isDark
-									? 'bg-gray-700 text-gray-300'
-									: 'bg-gray-100 text-gray-600'
-							}`}
-						>
-							<span>{data.fields.length}</span>
-							<span>
-								field{data.fields.length !== 1 ? 's' : ''}
-							</span>
-						</div>
-						{data.fields.some((f) => f.type === 'objectId') && (
-							<div
-								className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-									isDark
-										? 'bg-purple-500/20 text-purple-400'
-										: 'bg-purple-100 text-purple-600'
-								}`}
-							>
-								<Link className="w-3 h-3" />
-								<span>refs</span>
-							</div>
-						)}
-					</div>
+					<span
+						className={`text-[10px] font-mono ${
+							isDark ? 'text-[#525252]' : 'text-[#a3a3a3]'
+						}`}
+					>
+						{data.fields.length}
+					</span>
 				</div>
 			</div>
 
-			{/* Enhanced Fields List */}
+			{/* Fields */}
 			<div
-				className={`px-3 py-3 ${
+				className={`px-2 py-2 ${
 					showScrolling
-						? 'overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent hover:scrollbar-thumb-gray-500'
+						? 'overflow-y-auto'
 						: 'overflow-hidden'
 				}`}
 				style={{
 					height: showScrolling
-						? `${collectionHeight - 88}px` // Adjusted for new header height
+						? `${collectionHeight - 52}px`
 						: 'auto',
 				}}
 			>
 				{data.fields.length > 0 ? (
-					<div className="space-y-1.5">
+					<div className="space-y-1">
 						{data.fields.map((field: any, index: number) => {
 							const isTimestampField =
 								field.name === 'createdAt' ||
 								field.name === 'updatedAt';
-							const isIdField = field.name === '_id';
+							const isIdField = field.name === idFieldName;
 							const isLockedField = isTimestampField || isIdField;
 
-							// Check if the target position would be a locked field
 							const targetUpField =
 								index > 0 ? data.fields[index - 1] : null;
 							const targetDownField =
@@ -491,13 +483,13 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 
 							const targetUpIsLocked =
 								targetUpField &&
-								(targetUpField.name === '_id' ||
+								(targetUpField.name === idFieldName ||
 									targetUpField.name === 'createdAt' ||
 									targetUpField.name === 'updatedAt');
 
 							const targetDownIsLocked =
 								targetDownField &&
-								(targetDownField.name === '_id' ||
+								(targetDownField.name === idFieldName ||
 									targetDownField.name === 'createdAt' ||
 									targetDownField.name === 'updatedAt');
 
@@ -509,18 +501,6 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 								index < data.fields.length - 1 &&
 								!isLockedField &&
 								!targetDownIsLocked;
-
-							const handleMoveUp = () => {
-								if (canMoveUp) {
-									reorderFields(data.id, index, index - 1);
-								}
-							};
-
-							const handleMoveDown = () => {
-								if (canMoveDown) {
-									reorderFields(data.id, index, index + 1);
-								}
-							};
 
 							return (
 								<FieldItem
@@ -540,35 +520,37 @@ export default function CollectionNode({ data }: CollectionNodeProps) {
 										handleRemoveConnection
 									}
 									isTimestampField={isTimestampField}
+									isIdField={isIdField}
 									canMoveUp={canMoveUp}
 									canMoveDown={canMoveDown}
-									onMoveUp={handleMoveUp}
-									onMoveDown={handleMoveDown}
+									onMoveUp={() => {
+										if (canMoveUp)
+											reorderFields(
+												data.id,
+												index,
+												index - 1
+											);
+									}}
+									onMoveDown={() => {
+										if (canMoveDown)
+											reorderFields(
+												data.id,
+												index,
+												index + 1
+											);
+									}}
 								/>
 							);
 						})}
 					</div>
 				) : (
 					<div
-						className={`text-center py-6 ${
-							isDark ? 'text-gray-400' : 'text-gray-500'
+						className={`text-center py-4 ${
+							isDark ? 'text-[#3a3a3a]' : 'text-[#c4c4c4]'
 						}`}
 					>
-						<div
-							className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 ${
-								isDark
-									? 'bg-gray-700/50 border border-gray-600'
-									: 'bg-gray-100 border border-gray-200'
-							}`}
-						>
-							<Plus className="w-5 h-5" />
-						</div>
-						<p className="text-sm font-medium mb-1">
-							No fields yet
-						</p>
-						<p className="text-xs opacity-75">
-							Right-click to add fields
-						</p>
+						<Plus className="w-4 h-4 mx-auto mb-1" />
+						<p className="text-[11px]">Right-click to add fields</p>
 					</div>
 				)}
 			</div>

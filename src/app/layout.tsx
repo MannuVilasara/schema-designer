@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import '@/styles/globals.css'; // Ensure this path is correct
+import '@/styles/globals.css';
 import { ThemeProvider as CustomThemeProvider } from '@/contexts/ThemeContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -10,8 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-	title: 'MongoDB Schema Designer',
-	description: 'A tool for designing MongoDB schemas visually',
+	title: 'Schema Designer — Visual Database Schema Design',
+	description:
+		'A minimal, visual schema designer for PostgreSQL and MongoDB. Create, edit, and export database schemas with a clean drag-and-drop canvas.',
 };
 
 export default function RootLayout({
@@ -25,13 +26,16 @@ export default function RootLayout({
 				<CustomThemeProvider>
 					{children}
 					<Toaster
-						position="top-right"
+						position="bottom-center"
 						toastOptions={{
-							duration: 3000,
+							duration: 2500,
 							style: {
-								background: 'var(--background)',
+								background: 'var(--card)',
 								color: 'var(--foreground)',
 								border: '1px solid var(--border)',
+								borderRadius: '8px',
+								fontSize: '13px',
+								padding: '10px 16px',
 							},
 						}}
 					/>

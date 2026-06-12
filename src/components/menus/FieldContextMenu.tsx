@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useThemeContext } from '@/contexts/ThemeContext';
-import { Edit3, Trash2, Plus } from 'lucide-react';
+import { Trash2, Edit3, Plus } from 'lucide-react';
 import type { FieldContextMenuProps } from '@/types';
 
 export default function FieldContextMenu({
@@ -16,39 +16,8 @@ export default function FieldContextMenu({
 	onDeleteField,
 	onAddField,
 }: FieldContextMenuProps) {
-	const menuRef = useRef<HTMLDivElement>(null);
 	const { isDark } = useThemeContext();
-
-	// Position the menu and handle edge cases
-	const getMenuStyle = () => {
-		const menuWidth = 180;
-		const menuHeight = 120;
-		const padding = 10;
-
-		let finalX = x;
-		let finalY = y;
-
-		// Adjust for right edge
-		if (
-			typeof window !== 'undefined' &&
-			x + menuWidth > window.innerWidth - padding
-		) {
-			finalX = x - menuWidth;
-		}
-
-		// Adjust for bottom edge
-		if (
-			typeof window !== 'undefined' &&
-			y + menuHeight > window.innerHeight - padding
-		) {
-			finalY = y - menuHeight;
-		}
-
-		return {
-			left: `${Math.max(padding, finalX)}px`,
-			top: `${Math.max(padding, finalY)}px`,
-		};
-	};
+	const menuRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -59,90 +28,96 @@ export default function FieldContextMenu({
 				onClose();
 			}
 		};
-
 		const handleEscape = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				onClose();
-			}
+			if (event.key === 'Escape') onClose();
 		};
-
 		document.addEventListener('mousedown', handleClickOutside);
 		document.addEventListener('keydown', handleEscape);
-
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 			document.removeEventListener('keydown', handleEscape);
 		};
 	}, [onClose]);
 
-	const handleEditField = () => {
-		onEditField(collectionId, fieldIndex, { x, y });
+	const handleAction = (action: () => void) => {
+		action();
 		onClose();
 	};
 
-	const handleDeleteField = () => {
-		onDeleteField(collectionId, fieldIndex, { x, y });
-		onClose();
-	};
-
-	const handleAddField = () => {
-		onAddField(collectionId, { x, y });
-		onClose();
-	};
-
-	const isIdField = fieldName === '_id';
+	const itemClass = `w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${
+		isDark
+			? 'text-[#d4d4d4] hover:bg-[#1a1a1a]'
+			: 'text-[#404040] hover:bg-[#f5f5f5]'
+	}`;
 
 	return (
 		<div
 			ref={menuRef}
-			className={`fixed z-50 min-w-44 rounded-lg border shadow-lg ${
+			className={`fixed z-50 min-w-[140px] rounded-lg border py-1 ${
 				isDark
-					? 'bg-gray-800 border-gray-600 text-white'
-					: 'bg-white border-gray-200 text-gray-800'
+					? 'bg-[#111] border-[#262626]'
+					: 'bg-white border-[#e5e5e5]'
 			}`}
-			style={getMenuStyle()}
+			style={{
+				left: x,
+				top: y,
+				boxShadow: isDark
+					? '0 4px 24px rgba(0,0,0,0.4)'
+					: '0 4px 24px rgba(0,0,0,0.08)',
+			}}
 		>
-			<div className="py-1">
+			<div
+				className={`px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider border-b ${
+					isDark
+						? 'border-[#262626] text-[#525252]'
+						: 'border-[#f0f0f0] text-[#a3a3a3]'
+				}`}
+			>
+				{fieldName}
+			</div>
+
+			<div className="py-0.5">
 				<button
-					onClick={handleEditField}
-					className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-opacity-80 transition-colors ${
-						isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-					}`}
+					className={itemClass}
+					onClick={() =>
+						handleAction(() => onAddField(collectionId, { x, y }))
+					}
 				>
-					<Edit3 className="w-4 h-4" />
-					Edit field
+					<Plus className="w-3.5 h-3.5" />
+					Add Field
 				</button>
 
 				<button
-					onClick={handleAddField}
-					className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-opacity-80 transition-colors ${
-						isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-					}`}
+					className={itemClass}
+					onClick={() =>
+						handleAction(() =>
+							onEditField(collectionId, fieldIndex, { x, y })
+						)
+					}
 				>
-					<Plus className="w-4 h-4" />
-					Add new field
+					<Edit3 className="w-3.5 h-3.5" />
+					Edit Field
 				</button>
 
-				{!isIdField && (
-					<>
-						<div
-							className={`my-1 border-t ${
-								isDark ? 'border-gray-600' : 'border-gray-200'
-							}`}
-						/>
-						<button
-							onClick={handleDeleteField}
-							className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 text-red-500 hover:bg-opacity-80 transition-colors ${
-								isDark
-									? 'hover:bg-red-900/20'
-									: 'hover:bg-red-50'
-							}`}
-						>
-							<Trash2 className="w-4 h-4" />
-							Delete field
-						</button>
-					</>
-				)}
+				<div
+					className={`my-0.5 h-px ${isDark ? 'bg-[#262626]' : 'bg-[#f0f0f0]'}`}
+				/>
+
+				<button
+					className={`w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs transition-colors text-[#dc2626] ${
+						isDark
+							? 'hover:bg-[#1a1a1a]'
+							: 'hover:bg-[#fef2f2]'
+					}`}
+					onClick={() =>
+						handleAction(() =>
+							onDeleteField(collectionId, fieldIndex, { x, y })
+						)
+					}
+				>
+					<Trash2 className="w-3.5 h-3.5" />
+					Delete Field
+				</button>
 			</div>
 		</div>
 	);

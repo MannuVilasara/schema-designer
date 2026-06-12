@@ -18,6 +18,7 @@ export default function CustomEdge({
 	targetPosition,
 	style = {},
 	data,
+	markerStart,
 	markerEnd,
 	pathOptions,
 }: EdgeProps) {
@@ -65,9 +66,20 @@ export default function CustomEdge({
 		});
 	}
 
-	const onEdgeClick = useCallback(() => {
-		deleteElements({ edges: [{ id }] });
-	}, [id, deleteElements]);
+	const onEdgeClick = useCallback((event: React.MouseEvent) => {
+		event.preventDefault();
+		if (data?.onContextMenu) {
+			data.onContextMenu(event, id, data?.cardinality || '1:n');
+		}
+	}, [id, data]);
+
+	const onEdgeContextMenu = useCallback((event: React.MouseEvent) => {
+		event.preventDefault();
+		event.stopPropagation();
+		if (data?.onContextMenu) {
+			data.onContextMenu(event, id, data?.cardinality || '1:n');
+		}
+	}, [id, data]);
 
 	return (
 		<>
@@ -80,6 +92,7 @@ export default function CustomEdge({
 				}}
 				className="react-flow__edge-path"
 				d={edgePath}
+				markerStart={markerStart}
 				markerEnd={markerEnd}
 			/>
 			<path
@@ -87,8 +100,9 @@ export default function CustomEdge({
 				fill="none"
 				strokeOpacity={0}
 				strokeWidth={20}
-				className="react-flow__edge-interaction"
+				className="react-flow__edge-interaction cursor-context-menu"
 				onClick={onEdgeClick}
+				onContextMenu={onEdgeContextMenu}
 			/>
 			{/* Add small indicator for grouped connections */}
 			{totalInGroup > 1 && groupIndex === 0 && (

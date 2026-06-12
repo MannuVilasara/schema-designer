@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useThemeContext } from '@/contexts/ThemeContext';
+import { useSchemaStore } from '@/store/schemaStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +14,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { X } from 'lucide-react';
+import { getFieldTypes } from '@/types';
+import { X, AlertTriangle } from 'lucide-react';
 import type { EditFieldModalProps } from '@/types';
 
 export default function EditFieldModal({
@@ -24,23 +26,21 @@ export default function EditFieldModal({
 	onSave,
 }: EditFieldModalProps) {
 	const { isDark } = useThemeContext();
+	const dbType = useSchemaStore((s) => s.dbType);
+	const fieldTypes = getFieldTypes(dbType);
+
 	const [fieldName, setFieldName] = useState('');
 	const [fieldType, setFieldType] = useState('string');
 	const [isRequired, setIsRequired] = useState(false);
 	const [nameError, setNameError] = useState('');
 
-	// isDark is now provided by ThemeContext
-
-	// Validate field name
 	const validateFieldName = (name: string) => {
 		if (name.includes(' ')) {
 			setNameError('Field name cannot contain spaces');
 			return false;
 		}
 		if (name && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-			setNameError(
-				'Field name must start with a letter or underscore and contain only letters, numbers, and underscores'
-			);
+			setNameError('Field name must start with a letter or underscore');
 			return false;
 		}
 		setNameError('');
@@ -62,21 +62,20 @@ export default function EditFieldModal({
 			setFieldName(field.name);
 			setFieldType(field.type);
 			setIsRequired(field.required);
-			setNameError(''); // Reset error when field changes
+			setNameError('');
 		}
 	}, [field]);
 
 	const getModalStyle = () => {
 		if (!position) return {};
 
-		const modalWidth = 400;
-		const modalHeight = 300;
+		const modalWidth = 320;
+		const modalHeight = 350;
 		const padding = 20;
 
 		let finalX = position.x - modalWidth / 2;
 		let finalY = position.y - modalHeight / 2;
 
-		// Adjust for screen edges
 		if (finalX < padding) finalX = padding;
 		if (finalX + modalWidth > window.innerWidth - padding) {
 			finalX = window.innerWidth - modalWidth - padding;
@@ -102,144 +101,165 @@ export default function EditFieldModal({
 				type: fieldType,
 				required: isRequired,
 			});
-			onClose();
-		}
-	};
-
-	const handleOverlayClick = (e: React.MouseEvent) => {
-		if (e.target === e.currentTarget) {
-			onClose();
 		}
 	};
 
 	if (!isOpen || !field) return null;
 
-	const isIdField = field.name === '_id';
+	const isIdField = field.name === '_id' || field.name === 'id';
 
 	return (
-		<div
-			className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center"
-			onClick={handleOverlayClick}
-		>
+		<>
 			<div
-				className={`w-96 rounded-lg border shadow-lg ${
+				className="fixed inset-0 bg-black/40 z-40"
+				onClick={onClose}
+			/>
+
+			<div
+				className={`w-80 rounded-xl border shadow-xl z-50 ${
 					isDark
-						? 'bg-gray-800 border-gray-600 text-white'
-						: 'bg-white border-gray-200 text-gray-800'
+						? 'bg-[#141414] border-[#262626] text-white'
+						: 'bg-white border-[#e5e5e5] text-black'
 				}`}
 				style={position ? getModalStyle() : {}}
 			>
-				<div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
-					<h2 className="text-lg font-semibold">Edit Field</h2>
-					<Button
-						variant="ghost"
-						size="sm"
+				<div
+					className={`px-4 py-3 border-b flex items-center justify-between ${
+						isDark ? 'border-[#262626]' : 'border-[#e5e5e5]'
+					}`}
+				>
+					<h2 className="font-semibold text-sm">Edit Field</h2>
+					<button
 						onClick={onClose}
-						className="p-1 h-8 w-8"
+						className={`p-1.5 rounded-lg transition-colors ${
+							isDark
+								? 'hover:bg-[#262626] text-[#a3a3a3] hover:text-white'
+								: 'hover:bg-[#f0f0f0] text-[#737373] hover:text-black'
+						}`}
 					>
 						<X className="w-4 h-4" />
-					</Button>
+					</button>
 				</div>
 
-				<form onSubmit={handleSubmit} className="p-4 space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="fieldName">Field Name</Label>
-						<Input
-							id="fieldName"
-							type="text"
-							value={fieldName}
-							onChange={handleNameChange}
-							placeholder="Enter field name (no spaces)"
-							required
-							disabled={isIdField}
-							className={`${isIdField ? 'opacity-50 cursor-not-allowed' : ''} ${
-								nameError ? 'border-red-500' : ''
-							}`}
-						/>
-						{isIdField && (
-							<p className="text-xs text-gray-500">
-								The _id field name cannot be changed
-							</p>
-						)}
-						{nameError && !isIdField && (
-							<p className="text-red-500 text-xs">{nameError}</p>
-						)}
-					</div>
-
-					<div className="space-y-2">
-						<Label htmlFor="fieldType">Field Type</Label>
-						<Select
-							value={fieldType}
-							onValueChange={setFieldType}
-							disabled={isIdField}
-						>
-							<SelectTrigger
-								className={
-									isIdField
-										? 'opacity-50 cursor-not-allowed'
-										: ''
-								}
+				<div className="p-4">
+					<form onSubmit={handleSubmit} className="space-y-4">
+						<div className="space-y-1.5">
+							<Label
+								htmlFor="fieldName"
+								className="text-xs font-medium"
 							>
-								<SelectValue placeholder="Select field type" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="string">String</SelectItem>
-								<SelectItem value="number">Number</SelectItem>
-								<SelectItem value="boolean">Boolean</SelectItem>
-								<SelectItem value="date">Date</SelectItem>
-								<SelectItem value="array">Array</SelectItem>
-								<SelectItem value="object">Object</SelectItem>
-								<SelectItem value="objectId">
-									ObjectId
-								</SelectItem>
-							</SelectContent>
-						</Select>
-						{isIdField && (
-							<p className="text-xs text-gray-500">
-								The _id field type cannot be changed
-							</p>
-						)}
-					</div>
+								Field Name
+							</Label>
+							<Input
+								id="fieldName"
+								value={fieldName}
+								onChange={handleNameChange}
+								placeholder="Field name"
+								disabled={isIdField}
+								className={`h-9 text-sm rounded-lg border ${
+									isIdField ? 'opacity-50' : ''
+								} ${nameError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+								autoFocus
+								required
+							/>
+							{isIdField && (
+								<p className="text-[10px] text-[#737373]">
+									ID field name cannot be changed
+								</p>
+							)}
+							{nameError && !isIdField && (
+								<p className="text-[10px] text-red-500 flex items-center gap-1">
+									<AlertTriangle className="w-3 h-3" />
+									{nameError}
+								</p>
+							)}
+						</div>
 
-					<div className="flex items-center justify-between">
-						<Label htmlFor="required" className="flex-1">
-							Required Field
-						</Label>
-						<Switch
-							id="required"
-							checked={isRequired}
-							onCheckedChange={setIsRequired}
-							disabled={isIdField}
-							className={isIdField ? 'opacity-50' : ''}
-						/>
-					</div>
-					{isIdField && (
-						<p className="text-xs text-gray-500">
-							The _id field is always required
-						</p>
-					)}
+						<div className="space-y-1.5">
+							<Label className="text-xs font-medium">Type</Label>
+							<Select
+								value={fieldType}
+								onValueChange={setFieldType}
+								disabled={isIdField}
+							>
+								<SelectTrigger
+									className={`h-9 text-sm rounded-lg border ${
+										isIdField ? 'opacity-50' : ''
+									}`}
+								>
+									<SelectValue placeholder="Select type" />
+								</SelectTrigger>
+								<SelectContent>
+									{fieldTypes.map((type) => (
+										<SelectItem key={type} value={type}>
+											<span className="font-mono text-xs">
+												{type}
+											</span>
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							{isIdField && (
+								<p className="text-[10px] text-[#737373]">
+									ID field type cannot be changed
+								</p>
+							)}
+						</div>
 
-					<div className="flex gap-2 pt-4">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={onClose}
-							className="flex-1"
+						<div
+							className={`flex items-center justify-between p-3 rounded-lg border ${
+								isDark
+									? 'bg-[#1a1a1a] border-[#262626]'
+									: 'bg-[#fafafa] border-[#e5e5e5]'
+							}`}
 						>
-							Cancel
-						</Button>
-						<Button
-							type="submit"
-							className="flex-1"
-							disabled={
-								!fieldName.trim() || (!!nameError && !isIdField)
-							}
-						>
-							Save Changes
-						</Button>
-					</div>
-				</form>
+							<div className="space-y-0.5">
+								<Label className="text-xs font-medium">
+									Required
+								</Label>
+								<p
+									className={`text-[10px] ${
+										isDark
+											? 'text-[#737373]'
+											: 'text-[#a3a3a3]'
+									}`}
+								>
+									{isIdField
+										? 'ID is always required'
+										: 'Must have a value'}
+								</p>
+							</div>
+							<Switch
+								checked={isRequired}
+								onCheckedChange={setIsRequired}
+								disabled={isIdField}
+								className={isIdField ? 'opacity-50' : ''}
+							/>
+						</div>
+
+						<div className="pt-2 flex gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={onClose}
+								className="flex-1 h-9 text-xs rounded-lg border"
+							>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								disabled={
+									!fieldName.trim() ||
+									(!!nameError && !isIdField)
+								}
+								className="flex-1 h-9 text-xs rounded-lg bg-foreground text-background hover:opacity-90"
+							>
+								Save Changes
+							</Button>
+						</div>
+					</form>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 }

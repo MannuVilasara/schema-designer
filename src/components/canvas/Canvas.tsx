@@ -6,17 +6,17 @@ import ReactFlow, {
 	MarkerType,
 	Node,
 	NodeChange,
+	applyNodeChanges,
+	SelectionMode,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSchemaStore } from '@/store/schemaStore';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import CustomEdge from '@/components/CustomEdge';
 import toast from 'react-hot-toast';
 import {
 	AddFieldModal,
-	// BottomDock,
-	CollectionNode,
 	ConfirmDialog,
 	ConfirmFieldDeleteDialog,
 	ContextMenu,
@@ -24,8 +24,12 @@ import {
 	EditCollectionModal,
 	EditFieldModal,
 	FieldContextMenu,
-	CodeGenerationModal,
+	EdgeContextMenu,
 } from '@/components';
+import { CollectionNode, StickyNoteNode } from '@/components/nodes';
+
+const nodeTypes = { collectionNode: CollectionNode, stickyNoteNode: StickyNoteNode };
+const edgeTypes = { custom: CustomEdge };
 
 function Canvas() {
 	const collections = useSchemaStore((state) => state.collections);
@@ -47,6 +51,36 @@ function Canvas() {
 	const removeField = useSchemaStore((state) => state.removeField);
 	const updateField = useSchemaStore((state) => state.updateField);
 	const addCollection = useSchemaStore((state) => state.addCollection);
+	const dbType = useSchemaStore((state) => state.dbType);
+
+	const notes = useSchemaStore((state) => state.notes);
+	const updateNotePosition = useSchemaStore((state) => state.updateNotePosition);
+	const removeNote = useSchemaStore((state) => state.removeNote);
+	const addNote = useSchemaStore((state) => state.addNote);
+
+	// Global Keyboard Shortcuts (Undo/Redo)
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+			const isUndo = (isMac ? e.metaKey : e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z';
+			const isRedo = (isMac ? e.metaKey : e.ctrlKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'));
+			
+			if (isUndo || isRedo) {
+				const activeElement = document.activeElement;
+				const isInput = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
+				if (isInput) return; // Don't trigger if user is typing
+				
+				e.preventDefault();
+				if (isUndo) {
+					useSchemaStore.temporal.getState().undo();
+				} else if (isRedo) {
+					useSchemaStore.temporal.getState().redo();
+				}
+			}
+		};
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, []);
 
 	const { isDark } = useThemeContext();
 
@@ -75,6 +109,7 @@ function Canvas() {
 		collectionId: '',
 		collectionName: '',
 	});
+
 	const [confirmDelete, setConfirmDelete] = useState<{
 		isOpen: boolean;
 		collectionId: string;
@@ -85,6 +120,7 @@ function Canvas() {
 		collectionId: '',
 		collectionName: '',
 	});
+
 	const [editCollectionModal, setEditCollectionModal] = useState<{
 		isOpen: boolean;
 		collection: any;
@@ -93,13 +129,14 @@ function Canvas() {
 		isOpen: false,
 		collection: null,
 	});
+
 	const [createCollectionModal, setCreateCollectionModal] = useState<{
 		isOpen: boolean;
 		position?: { x: number; y: number };
 	}>({
 		isOpen: false,
 	});
-	// Edit field modal state
+
 	const [editFieldModal, setEditFieldModal] = useState<{
 		isOpen: boolean;
 		collectionId: string;
@@ -112,14 +149,7 @@ function Canvas() {
 		fieldIndex: -1,
 		field: null,
 	});
-	// Code sidebar state
-	const [codeSidebar, setCodeSidebar] = useState<{
-		isOpen: boolean;
-		selectedCollectionId: string | null;
-	}>({
-		isOpen: false,
-		selectedCollectionId: null,
-	});
+
 	const [confirmFieldDelete, setConfirmFieldDelete] = useState<{
 		isOpen: boolean;
 		collectionId: string;
@@ -133,9 +163,17 @@ function Canvas() {
 		fieldName: '',
 	});
 
+	const [edgeContextMenu, setEdgeContextMenu] = useState<{
+		x: number;
+		y: number;
+		connectionId: string;
+		cardinality: '1:1' | '1:n' | 'n:1' | 'n:m';
+	} | null>(null);
+
 	const closeContextMenu = useCallback(() => {
 		setContextMenu(null);
 	}, []);
+
 	const handleEditFieldSubmit = useCallback(
 		(field: { name: string; type: string; required: boolean }) => {
 			updateField(
@@ -149,7 +187,7 @@ function Canvas() {
 				fieldIndex: -1,
 				field: null,
 			});
-			toast.success(`Field "${field.name}" updated successfully`);
+			toast.success(`Field "${field.name}" updated`);
 		},
 		[updateField, editFieldModal.collectionId, editFieldModal.fieldIndex]
 	);
@@ -162,6 +200,7 @@ function Canvas() {
 			field: null,
 		});
 	}, []);
+
 	const handleCreateCollectionSubmit = useCallback(
 		(
 			name: string,
@@ -173,9 +212,9 @@ function Canvas() {
 		) => {
 			addCollection(name, options);
 			setCreateCollectionModal({ isOpen: false });
-			toast.success(`Collection "${name}" created successfully`);
+			toast.success(`${dbType === 'postgresql' ? 'Table' : 'Collection'} "${name}" created`);
 		},
-		[addCollection]
+		[addCollection, dbType]
 	);
 
 	const handleCloseCreateModal = useCallback(() => {
@@ -200,21 +239,13 @@ function Canvas() {
 			fieldIndex: -1,
 			fieldName: '',
 		});
-		toast.success(
-			`Field "${confirmFieldDelete.fieldName}" deleted successfully`
-		);
+		toast.success(`Field "${confirmFieldDelete.fieldName}" deleted`);
 	}, [
 		removeField,
 		confirmFieldDelete.collectionId,
 		confirmFieldDelete.fieldIndex,
 		confirmFieldDelete.fieldName,
 	]);
-	const handleCloseCodeSidebar = useCallback(() => {
-		setCodeSidebar({
-			isOpen: false,
-			selectedCollectionId: null,
-		});
-	}, []);
 
 	const cancelFieldDelete = useCallback(() => {
 		setConfirmFieldDelete({
@@ -232,7 +263,7 @@ function Canvas() {
 				isOpen: false,
 				collection: null,
 			});
-			toast.success(`Collection renamed to "${name}" successfully`);
+			toast.success(`Renamed to "${name}"`);
 		},
 		[updateCollection]
 	);
@@ -241,9 +272,7 @@ function Canvas() {
 		(id: string) => {
 			const collection = collections.find((col) => col.id === id);
 			duplicateCollection(id);
-			toast.success(
-				`Collection "${collection?.name}" duplicated successfully`
-			);
+			toast.success(`"${collection?.name}" duplicated`);
 		},
 		[duplicateCollection, collections]
 	);
@@ -258,12 +287,13 @@ function Canvas() {
 					isOpen: true,
 					collectionId: collectionId,
 					collectionName: collection.name,
-					position: position || collection.position, // Use cursor position if provided
+					position: position || collection.position,
 				});
 			}
 		},
 		[collections]
 	);
+
 	const handleDelete = useCallback(
 		(id: string, position?: { x: number; y: number }) => {
 			const collection = collections.find((col) => col.id === id);
@@ -272,7 +302,7 @@ function Canvas() {
 					isOpen: true,
 					collectionId: id,
 					collectionName: collection.name,
-					position: position || collection.position, // Use cursor position if provided
+					position: position || collection.position,
 				});
 			}
 		},
@@ -296,6 +326,59 @@ function Canvas() {
 		[]
 	);
 
+	const handleAddNote = useCallback(
+		(position?: { x: number; y: number }) => {
+			addNote(position || { x: 100, y: 100 });
+		},
+		[addNote]
+	);
+
+	const handleEdgeContextMenu = useCallback(
+		(event: React.MouseEvent, connectionId: string, cardinality: '1:1' | '1:n' | 'n:1' | 'n:m') => {
+			event.preventDefault();
+			event.stopPropagation();
+			setEdgeContextMenu({
+				x: event.clientX,
+				y: event.clientY,
+				connectionId,
+				cardinality,
+			});
+		},
+		[]
+	);
+
+	const onReactFlowEdgeContextMenu = useCallback(
+		(event: React.MouseEvent, edge: Edge) => {
+			event.preventDefault();
+			event.stopPropagation();
+			const cardinality = edge.data?.cardinality || '1:n';
+			setEdgeContextMenu({
+				x: event.clientX,
+				y: event.clientY,
+				connectionId: edge.id,
+				cardinality: cardinality,
+			});
+		},
+		[]
+	);
+
+	const onReactFlowNodeContextMenu = useCallback(
+		(event: React.MouseEvent, node: Node) => {
+			event.preventDefault();
+			event.stopPropagation();
+			
+			if (node.type === 'collectionNode') {
+				setContextMenu({
+					x: event.clientX,
+					y: event.clientY,
+					collectionId: node.id,
+					collectionName: node.data.name,
+				});
+			}
+		},
+		[]
+	);
+
 	const handleFieldContextMenu = useCallback(
 		(
 			event: React.MouseEvent,
@@ -314,7 +397,7 @@ function Canvas() {
 		},
 		[]
 	);
-	// Handle right-click on empty area to create new collection
+
 	const handleEmptyAreaContextMenu = useCallback(
 		(event: React.MouseEvent) => {
 			event.preventDefault();
@@ -327,7 +410,7 @@ function Canvas() {
 		},
 		[]
 	);
-	// Collection edit handlers
+
 	const handleEditCollection = useCallback(
 		(collectionId: string, position?: { x: number; y: number }) => {
 			const collection = collections.find(
@@ -343,15 +426,13 @@ function Canvas() {
 		},
 		[collections]
 	);
-	// Handle clicks to close context menu
+
 	const handleClick = useCallback(() => {
-		if (contextMenu) {
-			setContextMenu(null);
-		}
-		if (fieldContextMenu) {
-			setFieldContextMenu(null);
-		}
-	}, [contextMenu, fieldContextMenu]);
+		if (contextMenu) setContextMenu(null);
+		if (fieldContextMenu) setFieldContextMenu(null);
+		if (edgeContextMenu) setEdgeContextMenu(null);
+	}, [contextMenu, fieldContextMenu, edgeContextMenu]);
+
 	const confirmDeleteAction = useCallback(() => {
 		removeCollection(confirmDelete.collectionId);
 		setConfirmDelete({
@@ -359,14 +440,13 @@ function Canvas() {
 			collectionId: '',
 			collectionName: '',
 		});
-		toast.success(
-			`Collection "${confirmDelete.collectionName}" deleted successfully`
-		);
+		toast.success(`"${confirmDelete.collectionName}" deleted`);
 	}, [
 		removeCollection,
 		confirmDelete.collectionId,
 		confirmDelete.collectionName,
 	]);
+
 	const handleCreateCollection = useCallback(
 		(position?: { x: number; y: number }) => {
 			setCreateCollectionModal({ isOpen: true, position });
@@ -381,6 +461,7 @@ function Canvas() {
 			collectionName: '',
 		});
 	}, []);
+
 	const handleDeleteField = useCallback(
 		(
 			collectionId: string,
@@ -411,17 +492,10 @@ function Canvas() {
 				collectionId: '',
 				collectionName: '',
 			});
-			toast.success(`Field "${field.name}" added successfully`);
+			toast.success(`Field "${field.name}" added`);
 		},
 		[addField, addFieldModal.collectionId]
 	);
-	// Code generation handlers
-	const handleGenerateCode = useCallback((collectionId: string) => {
-		setCodeSidebar({
-			isOpen: true,
-			selectedCollectionId: collectionId,
-		});
-	}, []);
 
 	const handleCloseModal = useCallback(() => {
 		setAddFieldModal({
@@ -430,6 +504,7 @@ function Canvas() {
 			collectionName: '',
 		});
 	}, []);
+
 	const closeFieldContextMenu = useCallback(() => {
 		setFieldContextMenu(null);
 	}, []);
@@ -455,18 +530,17 @@ function Canvas() {
 		},
 		[collections]
 	);
-	// Close all context menus
-	const closeAllMenus = useCallback(() => {
-		if (contextMenu) {
-			setContextMenu(null);
-		}
-		if (fieldContextMenu) {
-			setFieldContextMenu(null);
-		}
-	}, [contextMenu, fieldContextMenu]);
 
-	const nodes: Node[] = useMemo(() => {
-		return collections.map((col, index) => ({
+	const closeAllMenus = useCallback(() => {
+		if (contextMenu) setContextMenu(null);
+		if (fieldContextMenu) setFieldContextMenu(null);
+		if (edgeContextMenu) setEdgeContextMenu(null);
+	}, [contextMenu, fieldContextMenu, edgeContextMenu]);
+
+	const [localNodes, setLocalNodes] = useState<Node[]>([]);
+
+	useEffect(() => {
+		const collectionNodes: Node[] = collections.map((col, index) => ({
 			id: col.id,
 			type: 'collectionNode',
 			data: {
@@ -476,23 +550,52 @@ function Canvas() {
 				onContextMenu: handleContextMenu,
 				onFieldContextMenu: handleFieldContextMenu,
 				onCloseMenus: closeAllMenus,
+				accentColor: col.accentColor,
 			},
 			position: col.position || { x: 100 + index * 220, y: 100 },
 		}));
-	}, [collections, handleContextMenu, handleFieldContextMenu, closeAllMenus]);
+
+		const noteNodes: Node[] = notes.map((note) => ({
+			id: note.id,
+			type: 'stickyNoteNode',
+			data: {
+				text: note.text,
+			},
+			position: note.position,
+		}));
+
+		setLocalNodes([...collectionNodes, ...noteNodes]);
+	}, [collections, notes, handleContextMenu, handleFieldContextMenu, closeAllMenus]);
 
 	const onNodesChange = useCallback(
 		(changes: NodeChange[]) => {
-			changes.forEach((change) => {
-				if (change.type === 'position' && change.position) {
-					updateCollectionPosition(change.id, change.position);
-				}
-			});
+			setLocalNodes((nds) => applyNodeChanges(changes, nds));
 		},
-		[updateCollectionPosition]
+		[]
 	);
+
+	const onNodeDragStop = useCallback(
+		(event: React.MouseEvent, node: Node) => {
+			if (node.type === 'collectionNode') {
+				updateCollectionPosition(node.id, node.position);
+			} else if (node.type === 'stickyNoteNode') {
+				updateNotePosition(node.id, node.position);
+			}
+		},
+		[updateCollectionPosition, updateNotePosition]
+	);
+
+	const onNodesDelete = useCallback((deleted: Node[]) => {
+		deleted.forEach((node) => {
+			if (node.type === 'collectionNode') {
+				removeCollection(node.id);
+			} else if (node.type === 'stickyNoteNode') {
+				removeNote(node.id);
+			}
+		});
+	}, [removeCollection, removeNote]);
+
 	const edges: Edge[] = useMemo(() => {
-		// Group connections by source-target pair to handle overlapping
 		const connectionGroups = connections.reduce(
 			(groups, connection) => {
 				const key = `${connection.sourceCollectionName}-${connection.targetCollectionName}`;
@@ -505,8 +608,11 @@ function Canvas() {
 			{} as Record<string, typeof connections>
 		);
 
+		// Monochromatic edge colors
+		const edgeColor = isDark ? '#404040' : '#a3a3a3';
+
 		return connections
-			.map((connection, index) => {
+			.map((connection) => {
 				const groupKey = `${connection.sourceCollectionName}-${connection.targetCollectionName}`;
 				const group = connectionGroups[groupKey];
 				const connectionIndex = group.findIndex(
@@ -514,7 +620,6 @@ function Canvas() {
 				);
 				const totalInGroup = group.length;
 
-				// Find the collection IDs from names
 				const sourceCollection = collections.find(
 					(c) => c.name === connection.sourceCollectionName
 				);
@@ -522,11 +627,8 @@ function Canvas() {
 					(c) => c.name === connection.targetCollectionName
 				);
 
-				if (!sourceCollection || !targetCollection) {
-					return null;
-				}
+				if (!sourceCollection || !targetCollection) return null;
 
-				// Find field indices from names for handle IDs
 				const sourceFieldIndex = sourceCollection.fields.findIndex(
 					(f) => f.name === connection.sourceFieldName
 				);
@@ -534,10 +636,8 @@ function Canvas() {
 					(f) => f.name === connection.targetFieldName
 				);
 
-				// Calculate offset for multiple connections between same nodes
 				let pathOptions = {};
 				if (totalInGroup > 1) {
-					// Create more pronounced spacing for multiple connections
 					const baseOffset = 40;
 					const spacing = Math.min(
 						80,
@@ -545,12 +645,30 @@ function Canvas() {
 					);
 					const offset =
 						(connectionIndex - (totalInGroup - 1) / 2) * spacing;
-
 					pathOptions = {
 						offset: offset,
 						borderRadius: Math.abs(offset) + 30,
 						curvature: 0.2 + Math.abs(offset) * 0.005,
 					};
+				}
+
+				const cardinality = connection.cardinality || '1:n';
+				const colorSuffix = isDark ? 'dark' : 'light';
+				let markerStartId = '';
+				let markerEndId = '';
+
+				if (cardinality === '1:n') {
+					markerStartId = `crows-one-${colorSuffix}`;
+					markerEndId = `crows-many-${colorSuffix}`;
+				} else if (cardinality === '1:1') {
+					markerStartId = `crows-one-${colorSuffix}`;
+					markerEndId = `crows-one-${colorSuffix}`;
+				} else if (cardinality === 'n:1') {
+					markerStartId = `crows-many-${colorSuffix}`;
+					markerEndId = `crows-one-${colorSuffix}`;
+				} else if (cardinality === 'n:m') {
+					markerStartId = `crows-many-${colorSuffix}`;
+					markerEndId = `crows-many-${colorSuffix}`;
 				}
 
 				return {
@@ -560,15 +678,13 @@ function Canvas() {
 					sourceHandle: `${sourceCollection.id}-field-${sourceFieldIndex}-source`,
 					targetHandle: `${targetCollection.id}-field-${targetFieldIndex}-target`,
 					type: totalInGroup > 1 ? 'custom' : 'default',
-					animated: true,
+					animated: false,
 					style: {
-						stroke: isDark ? '#3b82f6' : '#2563eb',
-						strokeWidth: 2,
+						stroke: edgeColor,
+						strokeWidth: 1.5,
 					},
-					markerEnd: {
-						type: MarkerType.Arrow,
-						color: isDark ? '#3b82f6' : '#2563eb',
-					},
+					markerStart: `url(#${markerStartId})`,
+					markerEnd: `url(#${markerEndId})`,
 					pathOptions,
 					data: {
 						sourceField: connection.sourceFieldName,
@@ -576,11 +692,15 @@ function Canvas() {
 						connectionType: connection.type,
 						groupIndex: connectionIndex,
 						totalInGroup: totalInGroup,
+						cardinality: cardinality,
+						onContextMenu: handleEdgeContextMenu,
 					},
 				};
 			})
 			.filter((edge): edge is NonNullable<typeof edge> => edge !== null);
 	}, [connections, collections, isDark]);
+
+	const idFieldName = dbType === 'postgresql' ? 'id' : '_id';
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
@@ -593,7 +713,6 @@ function Canvas() {
 				return;
 			}
 
-			// Parse the handle IDs to get collection and field information
 			const sourceMatch = connection.sourceHandle.match(
 				/^(.+)-field-(\d+)-source$/
 			);
@@ -601,16 +720,13 @@ function Canvas() {
 				/^(.+)-field-(\d+)-target$/
 			);
 
-			if (!sourceMatch || !targetMatch) {
-				return;
-			}
+			if (!sourceMatch || !targetMatch) return;
 
 			const sourceCollectionId = sourceMatch[1];
 			const sourceFieldIndex = parseInt(sourceMatch[2]);
 			const targetCollectionId = targetMatch[1];
 			const targetFieldIndex = parseInt(targetMatch[2]);
 
-			// Find the collections and fields
 			const sourceCollection = collections.find(
 				(c) => c.id === sourceCollectionId
 			);
@@ -618,54 +734,47 @@ function Canvas() {
 				(c) => c.id === targetCollectionId
 			);
 
-			if (!sourceCollection || !targetCollection) {
-				return;
-			}
+			if (!sourceCollection || !targetCollection) return;
 
 			const sourceField = sourceCollection.fields[sourceFieldIndex];
 			const targetField = targetCollection.fields[targetFieldIndex];
 
-			if (!sourceField || !targetField) {
-				return;
-			}
+			if (!sourceField || !targetField) return;
 
-			// Validate that both fields are objectId type
+			// Validate ref types
+			const refTypes = ['objectId', 'uuid'];
 			if (
-				sourceField.type !== 'objectId' ||
-				targetField.type !== 'objectId'
+				!refTypes.includes(sourceField.type) ||
+				!refTypes.includes(targetField.type)
 			) {
 				return;
 			}
 
-			// Prevent _id fields from connecting to other _id fields
-			if (sourceField.name === '_id' && targetField.name === '_id') {
+			// Prevent ID-to-ID connections
+			if (
+				sourceField.name === idFieldName &&
+				targetField.name === idFieldName
+			) {
 				return;
 			}
 
-			// Check connection limits:
-			// - _id fields can have multiple connections
-			// - Other objectId fields can only have one connection
-			if (sourceField.name !== '_id') {
+			// Connection limits
+			if (sourceField.name !== idFieldName) {
 				const sourceConnections = getFieldConnections(
 					sourceCollection.name,
 					sourceField.name
 				);
-				if (sourceConnections.length > 0) {
-					return; // This field already has a connection
-				}
+				if (sourceConnections.length > 0) return;
 			}
 
-			if (targetField.name !== '_id') {
+			if (targetField.name !== idFieldName) {
 				const targetConnections = getFieldConnections(
 					targetCollection.name,
 					targetField.name
 				);
-				if (targetConnections.length > 0) {
-					return; // This field already has a connection
-				}
+				if (targetConnections.length > 0) return;
 			}
 
-			// Create the connection
 			addConnection({
 				sourceCollectionName: sourceCollection.name,
 				sourceFieldName: sourceField.name,
@@ -675,26 +784,30 @@ function Canvas() {
 			});
 
 			toast.success(
-				`Connection created between ${sourceCollection.name}.${sourceField.name} and ${targetCollection.name}.${targetField.name}`
+				`Connected ${sourceCollection.name}.${sourceField.name} → ${targetCollection.name}.${targetField.name}`
 			);
 		},
-		[collections, getFieldConnections, addConnection]
+		[collections, getFieldConnections, addConnection, idFieldName]
 	);
 
 	return (
 		<>
-			<div className="h-full w-full pb-14 pt-20">
+			<div className="h-full w-full">
 				<ReactFlow
-					nodes={nodes}
+					nodes={localNodes}
 					edges={edges}
-					nodeTypes={{ collectionNode: CollectionNode }}
-					edgeTypes={{ custom: CustomEdge }}
+					nodeTypes={nodeTypes}
+					edgeTypes={edgeTypes}
 					onNodesChange={onNodesChange}
+					onNodeDragStop={onNodeDragStop}
+					onNodesDelete={onNodesDelete}
 					onConnect={onConnect}
 					onPaneContextMenu={handleEmptyAreaContextMenu}
 					onPaneClick={handleClick}
+					onEdgeContextMenu={onReactFlowEdgeContextMenu}
+					onNodeContextMenu={onReactFlowNodeContextMenu}
 					fitView
-					className="h-full w-full rounded-lg"
+					className="h-full w-full"
 					defaultViewport={{ x: 0, y: 0, zoom: 1 }}
 					minZoom={0.1}
 					maxZoom={3}
@@ -704,44 +817,72 @@ function Canvas() {
 					elementsSelectable={true}
 					snapToGrid={false}
 					snapGrid={[1, 1]}
-					deleteKeyCode={null}
+					deleteKeyCode={['Backspace', 'Delete']}
 					multiSelectionKeyCode={null}
 					preventScrolling={false}
 					zoomOnScroll={true}
 					zoomOnPinch={true}
 					panOnScroll={false}
+					panOnDrag={false}
+					selectionOnDrag={true}
+					selectionMode={SelectionMode.Partial}
+					panActivationKeyCode="Space"
 					panOnScrollSpeed={0.5}
 					zoomOnDoubleClick={false}
 					proOptions={{ hideAttribution: true }}
 					nodeOrigin={[0, 0]}
 					nodeDragThreshold={0}
 				>
-					{/* Enhanced Background */}
+					<svg style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0 }}>
+						<defs>
+							{/* Light Mode Markers */}
+							<marker id="crows-one-light" markerWidth="20" markerHeight="20" refX="2" refY="10" orient="auto-start-reverse">
+								<line x1="2" y1="5" x2="2" y2="15" stroke="#a3a3a3" strokeWidth="1.5" />
+								<line x1="6" y1="5" x2="6" y2="15" stroke="#a3a3a3" strokeWidth="1.5" />
+							</marker>
+							<marker id="crows-many-light" markerWidth="20" markerHeight="20" refX="2" refY="10" orient="auto-start-reverse">
+								<line x1="0" y1="10" x2="8" y2="5" stroke="#a3a3a3" strokeWidth="1.5" />
+								<line x1="0" y1="10" x2="8" y2="15" stroke="#a3a3a3" strokeWidth="1.5" />
+								<line x1="0" y1="10" x2="8" y2="10" stroke="#a3a3a3" strokeWidth="1.5" />
+								<line x1="8" y1="5" x2="8" y2="15" stroke="#a3a3a3" strokeWidth="1.5" />
+							</marker>
+							{/* Dark Mode Markers */}
+							<marker id="crows-one-dark" markerWidth="20" markerHeight="20" refX="2" refY="10" orient="auto-start-reverse">
+								<line x1="2" y1="5" x2="2" y2="15" stroke="#404040" strokeWidth="1.5" />
+								<line x1="6" y1="5" x2="6" y2="15" stroke="#404040" strokeWidth="1.5" />
+							</marker>
+							<marker id="crows-many-dark" markerWidth="20" markerHeight="20" refX="2" refY="10" orient="auto-start-reverse">
+								<line x1="0" y1="10" x2="8" y2="5" stroke="#404040" strokeWidth="1.5" />
+								<line x1="0" y1="10" x2="8" y2="15" stroke="#404040" strokeWidth="1.5" />
+								<line x1="0" y1="10" x2="8" y2="10" stroke="#404040" strokeWidth="1.5" />
+								<line x1="8" y1="5" x2="8" y2="15" stroke="#404040" strokeWidth="1.5" />
+							</marker>
+						</defs>
+					</svg>
 					<Background
-						color={isDark ? '#374151' : '#94a3b8'}
-						gap={20}
-						size={1}
+						color={isDark ? '#1a1a1a' : '#e5e5e5'}
+						gap={24}
+						size={1.5}
 						style={{
-							backgroundColor: isDark ? '#111827' : '#f1f5f9',
+							backgroundColor: isDark ? '#0a0a0a' : '#fafafa',
 						}}
 					/>
-
-					{/* Enhanced Controls */}
 					<Controls
 						position="top-right"
-						className={`backdrop-blur-sm border rounded-lg shadow-lg ${
+						className={`rounded-lg border ${
 							isDark
-								? 'bg-gray-900/95 border-gray-700/60'
-								: 'bg-white/95 border-gray-300/60'
+								? 'bg-[#0a0a0a]/90 border-[#262626]'
+								: 'bg-white/90 border-[#e5e5e5]'
 						}`}
 						style={{
-							top: '80px',
+							top: '16px',
 							right: '16px',
 						}}
 					/>
 				</ReactFlow>
 			</div>
-			{/* Enhanced Context Menu */}
+
+			{/* Context Menus */}
 			{contextMenu && (
 				<ContextMenu
 					x={contextMenu.x}
@@ -754,7 +895,7 @@ function Canvas() {
 					onAddField={handleAddField}
 					onEditCollection={handleEditCollection}
 					onCreateCollection={handleCreateCollection}
-					onGenerateCode={handleGenerateCode}
+					onAddNote={handleAddNote}
 				/>
 			)}
 
@@ -771,6 +912,18 @@ function Canvas() {
 					onAddField={handleAddField}
 				/>
 			)}
+
+			{edgeContextMenu && (
+				<EdgeContextMenu
+					x={edgeContextMenu.x}
+					y={edgeContextMenu.y}
+					connectionId={edgeContextMenu.connectionId}
+					cardinality={edgeContextMenu.cardinality}
+					onClose={() => setEdgeContextMenu(null)}
+				/>
+			)}
+
+			{/* Modals */}
 			<AddFieldModal
 				isOpen={addFieldModal.isOpen}
 				collectionName={addFieldModal.collectionName}
@@ -781,12 +934,13 @@ function Canvas() {
 
 			<ConfirmDialog
 				isOpen={confirmDelete.isOpen}
-				title="Delete Collection"
-				message={`Are you sure you want to delete the "${confirmDelete.collectionName}" collection? This action cannot be undone.`}
+				title={`Delete ${dbType === 'postgresql' ? 'Table' : 'Collection'}`}
+				message={`Are you sure you want to delete "${confirmDelete.collectionName}"? This cannot be undone.`}
 				position={confirmDelete.position}
 				onConfirm={confirmDeleteAction}
 				onCancel={cancelDelete}
 			/>
+
 			<CreateCollectionModal
 				isOpen={createCollectionModal.isOpen}
 				position={createCollectionModal.position}
@@ -816,13 +970,6 @@ function Canvas() {
 				position={editCollectionModal.position}
 				onClose={handleCloseEditCollection}
 				onSave={handleEditCollectionSubmit}
-			/>
-
-			{/* Enhanced Code Generation Modal */}
-			<CodeGenerationModal
-				isOpen={codeSidebar.isOpen}
-				selectedCollectionId={codeSidebar.selectedCollectionId}
-				onClose={handleCloseCodeSidebar}
 			/>
 		</>
 	);

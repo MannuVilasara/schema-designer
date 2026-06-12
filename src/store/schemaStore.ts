@@ -1,6 +1,9 @@
-import type { Field, FieldConnection, SchemaState } from '@/types';
+import type { DbType, Field, FieldConnection, SchemaState } from '@/types';
+import { getIdFieldConfig } from '@/types';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
+import dagre from 'dagre';
 
 // Helper function to ensure timestamp fields are always at the end
 const organizeFields = (fields: Field[]): Field[] => {
@@ -22,40 +25,46 @@ const organizeFields = (fields: Field[]): Field[] => {
 };
 
 export const useSchemaStore = create<SchemaState>()(
-	persist(
-		(set, get) => ({
-			collections: [],
-			connections: [],
-			leftSidebarDocked: true,
+	temporal(
+		persist(
+			(set, get) => ({
+				collections: [],
+				connections: [],
+				notes: [],
+				dbType: 'mongodb' as DbType,
 
-			// UI state management
-			setLeftSidebarDocked: (docked) =>
-				set({ leftSidebarDocked: docked }),
+			setDbType: (dbType: DbType) => set({ dbType }),
+
 			addCollection: (name, options) => {
 				set((state) => {
 					const baseFields: Field[] = [];
 					const now = new Date();
+					const idConfig = getIdFieldConfig(state.dbType);
 
-					// Always add _id field as the first field
+					// Always add ID field as the first field
 					baseFields.push({
-						name: '_id',
-						type: 'objectId',
+						name: idConfig.name,
+						type: idConfig.type,
 						required: true,
 					});
 
 					// Add timestamp fields if requested
 					if (options?.includeTimestamps) {
+						const tsType =
+							state.dbType === 'postgresql'
+								? 'timestamp'
+								: 'date';
 						if (options.includeCreatedAt) {
 							baseFields.push({
 								name: 'createdAt',
-								type: 'date',
+								type: tsType,
 								required: true,
 							});
 						}
 						if (options.includeUpdatedAt) {
 							baseFields.push({
 								name: 'updatedAt',
-								type: 'date',
+								type: tsType,
 								required: true,
 							});
 						}
@@ -92,12 +101,10 @@ export const useSchemaStore = create<SchemaState>()(
 					);
 					if (!collectionToDuplicate) return state;
 
-					// Generate a unique name by checking existing names
 					let baseName = collectionToDuplicate.name;
 					let newName = `${baseName}_copy`;
 					let counter = 1;
 
-					// Check if the name already exists and increment counter if needed
 					while (
 						state.collections.some((col) => col.name === newName)
 					) {
@@ -185,17 +192,15 @@ export const useSchemaStore = create<SchemaState>()(
 						const sourceField = fields[sourceIndex];
 						const destField = fields[destinationIndex];
 
-						// Prevent moving timestamp fields or moving fields to timestamp positions
 						if (
 							sourceField.name === 'createdAt' ||
 							sourceField.name === 'updatedAt' ||
 							destField?.name === 'createdAt' ||
 							destField?.name === 'updatedAt'
 						) {
-							return col; // Don't allow reordering timestamp fields
+							return col;
 						}
 
-						// Only allow reordering within non-timestamp fields
 						const nonTimestampFields = fields.filter(
 							(field) =>
 								field.name !== 'createdAt' &&
@@ -207,7 +212,6 @@ export const useSchemaStore = create<SchemaState>()(
 								field.name === 'updatedAt'
 						);
 
-						// Find the real indices within non-timestamp fields
 						const sourceNonTimestampIndex =
 							nonTimestampFields.findIndex(
 								(f) => f === sourceField
@@ -221,10 +225,9 @@ export const useSchemaStore = create<SchemaState>()(
 							sourceNonTimestampIndex === -1 ||
 							destNonTimestampIndex === -1
 						) {
-							return col; // Invalid indices
+							return col;
 						}
 
-						// Reorder within non-timestamp fields
 						const reorderedNonTimestampFields = [
 							...nonTimestampFields,
 						];
@@ -238,7 +241,6 @@ export const useSchemaStore = create<SchemaState>()(
 							removed
 						);
 
-						// Sort timestamp fields to maintain order
 						timestampFields.sort((a, b) => {
 							if (a.name === 'createdAt') return -1;
 							if (b.name === 'createdAt') return 1;
@@ -260,6 +262,12 @@ export const useSchemaStore = create<SchemaState>()(
 						col.id === id ? { ...col, position } : col
 					),
 				})),
+			updateCollectionAccentColor: (id, color) =>
+				set((state) => ({
+					collections: state.collections.map((col) =>
+						col.id === id ? { ...col, accentColor: color } : col
+					),
+				})),
 
 			// Connection management
 			addConnection: (connectionData) =>
@@ -273,7 +281,6 @@ export const useSchemaStore = create<SchemaState>()(
 						...state,
 						connections: [...state.connections, newConnection],
 						collections: state.collections.map((col) => {
-							// Update source field connections
 							if (
 								col.name === connectionData.sourceCollectionName
 							) {
@@ -294,7 +301,6 @@ export const useSchemaStore = create<SchemaState>()(
 									),
 								};
 							}
-							// Update target field connections
 							if (
 								col.name === connectionData.targetCollectionName
 							) {
@@ -333,7 +339,6 @@ export const useSchemaStore = create<SchemaState>()(
 							(conn) => conn.id !== connectionId
 						),
 						collections: state.collections.map((col) => {
-							// Remove connection from source field
 							if (
 								col.name ===
 								connectionToRemove.sourceCollectionName
@@ -356,7 +361,6 @@ export const useSchemaStore = create<SchemaState>()(
 									),
 								};
 							}
-							// Remove connection from target field
 							if (
 								col.name ===
 								connectionToRemove.targetCollectionName
@@ -384,6 +388,13 @@ export const useSchemaStore = create<SchemaState>()(
 					};
 				}),
 
+			updateConnectionCardinality: (id, cardinality) =>
+				set((state) => ({
+					connections: state.connections.map((conn) =>
+						conn.id === id ? { ...conn, cardinality } : conn
+					),
+				})),
+
 			getFieldConnections: (collectionName, fieldName) => {
 				const state = get();
 				return state.connections.filter(
@@ -401,8 +412,10 @@ export const useSchemaStore = create<SchemaState>()(
 				const schemaData = {
 					collections: state.collections,
 					connections: state.connections,
+					notes: state.notes,
+					dbType: state.dbType,
 					exportedAt: new Date().toISOString(),
-					version: '1.0',
+					version: '2.0',
 				};
 				return JSON.stringify(schemaData, null, 2);
 			},
@@ -418,6 +431,8 @@ export const useSchemaStore = create<SchemaState>()(
 						set({
 							collections: parsed.collections,
 							connections: parsed.connections || [],
+							notes: parsed.notes || [],
+							dbType: parsed.dbType || 'mongodb',
 						});
 					} else {
 						throw new Error('Invalid schema format');
@@ -433,12 +448,94 @@ export const useSchemaStore = create<SchemaState>()(
 				set({
 					collections: [],
 					connections: [],
+					notes: [],
 				});
 			},
+
+			// Notes management
+			addNote: (position) =>
+				set((state) => ({
+					notes: [
+						...state.notes,
+						{
+							id: crypto.randomUUID(),
+							text: 'New Note',
+							position,
+						},
+					],
+				})),
+			updateNote: (id, text) =>
+				set((state) => ({
+					notes: state.notes.map((n) =>
+						n.id === id ? { ...n, text } : n
+					),
+				})),
+			updateNotePosition: (id, position) =>
+				set((state) => ({
+					notes: state.notes.map((n) =>
+						n.id === id ? { ...n, position } : n
+					),
+				})),
+			removeNote: (id) =>
+				set((state) => ({
+					notes: state.notes.filter((n) => n.id !== id),
+				})),
+
+			// Auto Layout
+			autoLayout: () =>
+				set((state) => {
+					const g = new dagre.graphlib.Graph();
+					g.setGraph({ rankdir: 'LR', nodesep: 100, ranksep: 200 });
+					g.setDefaultEdgeLabel(() => ({}));
+
+					state.collections.forEach((col) => {
+						// Approximate height based on fields
+						const height = 50 + col.fields.length * 40;
+						g.setNode(col.id, { width: 320, height });
+					});
+
+					state.connections.forEach((conn) => {
+						const sourceCol = state.collections.find(
+							(c) => c.name === conn.sourceCollectionName
+						);
+						const targetCol = state.collections.find(
+							(c) => c.name === conn.targetCollectionName
+						);
+						if (sourceCol && targetCol) {
+							g.setEdge(sourceCol.id, targetCol.id);
+						}
+					});
+
+					dagre.layout(g);
+
+					const updatedCollections = state.collections.map((col) => {
+						const nodeWithPosition = g.node(col.id);
+						if (!nodeWithPosition) return col;
+						const height = 50 + col.fields.length * 40;
+						return {
+							...col,
+							position: {
+								x: nodeWithPosition.x - 160, // center offset
+								y: nodeWithPosition.y - height / 2,
+							},
+						};
+					});
+
+					return { collections: updatedCollections };
+				}),
 		}),
 		{
-			name: 'mongodb-schema-designer',
-			version: 1,
+			name: 'schema-designer-v2',
+			version: 2,
 		}
-	)
+	),
+	{
+		partialize: (state) => ({
+			collections: state.collections,
+			connections: state.connections,
+			notes: state.notes,
+			dbType: state.dbType,
+		}),
+	}
+)
 );

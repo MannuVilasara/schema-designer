@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useThemeContext } from '@/contexts/ThemeContext';
-import { X, Clock, Database, Sparkles, CheckCircle } from 'lucide-react';
+import { useSchemaStore } from '@/store/schemaStore';
+import { getEntityLabel, getIdFieldConfig } from '@/types';
+import { X, AlertTriangle } from 'lucide-react';
 import type { CreateCollectionModalProps } from '@/types';
 
 export default function CreateCollectionModal({
@@ -16,6 +18,9 @@ export default function CreateCollectionModal({
 	onCreateCollection,
 }: CreateCollectionModalProps) {
 	const { isDark } = useThemeContext();
+	const dbType = useSchemaStore((s) => s.dbType);
+	const entityLabel = getEntityLabel(dbType);
+	const idConfig = getIdFieldConfig(dbType);
 
 	const [collectionName, setCollectionName] = useState('');
 	const [includeTimestamps, setIncludeTimestamps] = useState(true);
@@ -23,15 +28,14 @@ export default function CreateCollectionModal({
 	const [includeUpdatedAt, setIncludeUpdatedAt] = useState(true);
 	const [nameError, setNameError] = useState('');
 
-	// Validate collection name
 	const validateCollectionName = (name: string) => {
 		if (name.includes(' ')) {
-			setNameError('Collection name cannot contain spaces');
+			setNameError(`${entityLabel} name cannot contain spaces`);
 			return false;
 		}
 		if (name && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
 			setNameError(
-				'Collection name must start with a letter or underscore and contain only letters, numbers, and underscores'
+				`${entityLabel} name must start with a letter or underscore`
 			);
 			return false;
 		}
@@ -49,25 +53,20 @@ export default function CreateCollectionModal({
 		}
 	};
 
-	// Calculate modal position on canvas
 	const getModalStyle = () => {
 		if (position) {
-			const modalWidth = 320; // w-80 = 320px
-			const modalHeight = 350; // Estimated height with timestamp options
-
-			// Calculate position with bounds checking
-			let left = position.x + 20; // Small offset from click
+			const modalWidth = 320;
+			const modalHeight = 350;
+			let left = position.x + 20;
 			let top = position.y + 20;
 
-			// Ensure modal doesn't go off-screen
 			if (left + modalWidth > window.innerWidth) {
-				left = position.x - modalWidth - 20; // Show to the left instead
+				left = position.x - modalWidth - 20;
 			}
 			if (top + modalHeight > window.innerHeight) {
-				top = position.y - modalHeight - 20; // Show above instead
+				top = position.y - modalHeight - 20;
 			}
 
-			// Ensure minimum margins
 			left = Math.max(
 				10,
 				Math.min(left, window.innerWidth - modalWidth - 10)
@@ -84,7 +83,7 @@ export default function CreateCollectionModal({
 				zIndex: 50,
 			};
 		}
-		return {}; // Default centering will be handled by CSS
+		return {};
 	};
 
 	const handleSubmit = (e: React.FormEvent) => {
@@ -98,7 +97,6 @@ export default function CreateCollectionModal({
 			includeUpdatedAt: includeTimestamps ? includeUpdatedAt : false,
 		});
 
-		// Reset form
 		setCollectionName('');
 		setIncludeTimestamps(true);
 		setIncludeCreatedAt(true);
@@ -123,18 +121,16 @@ export default function CreateCollectionModal({
 
 	return (
 		<>
-			{/* Enhanced Backdrop */}
 			<div
-				className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300"
+				className="fixed inset-0 bg-black/40 z-40"
 				onClick={handleClose}
 			/>
 
-			{/* Enhanced Modal Card */}
 			<div
-				className={`w-96 max-w-sm rounded-2xl shadow-2xl border z-50 transform transition-all duration-300 scale-100 backdrop-blur-xl ${
+				className={`w-80 rounded-xl border shadow-xl z-50 ${
 					isDark
-						? 'bg-gray-900/95 border-gray-700/50 text-white shadow-gray-900/50'
-						: 'bg-white/95 border-gray-200/50 text-gray-900 shadow-gray-500/20'
+						? 'bg-[#141414] border-[#262626] text-white'
+						: 'bg-white border-[#e5e5e5] text-black'
 				} ${isPositioned ? 'fixed' : 'relative'}`}
 				style={
 					isPositioned
@@ -147,236 +143,149 @@ export default function CreateCollectionModal({
 							}
 				}
 			>
-				{/* Enhanced Header with Gradient */}
 				<div
-					className={`relative p-6 border-b overflow-hidden ${
-						isDark ? 'border-gray-700/50' : 'border-gray-200/50'
+					className={`px-4 py-3 border-b flex items-center justify-between ${
+						isDark ? 'border-[#262626]' : 'border-[#e5e5e5]'
 					}`}
 				>
-					{/* Header Background Gradient */}
-					<div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 opacity-50"></div>
-
-					<div className="relative z-10 flex items-center justify-between">
-						<div className="flex items-center gap-3">
-							<div
-								className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
-									isDark
-										? 'bg-gradient-to-r from-blue-500/20 to-purple-600/20 border border-blue-400/30'
-										: 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200'
-								}`}
-							>
-								<Database className="w-6 h-6 text-blue-500" />
-							</div>
-							<div>
-								<h2 className="text-xl font-bold tracking-tight">
-									Create Collection
-								</h2>
-								<p
-									className={`text-sm ${
-										isDark
-											? 'text-gray-400'
-											: 'text-gray-500'
-									}`}
-								>
-									Define a new MongoDB collection
-								</p>
-							</div>
-						</div>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={handleClose}
-							className={`h-10 w-10 rounded-xl transition-all duration-200 ${
-								isDark
-									? 'hover:bg-gray-800 text-gray-400 hover:text-white'
-									: 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
-							}`}
-						>
-							<X className="w-5 h-5" />
-						</Button>
+					<div>
+						<h2 className="font-semibold text-sm">
+							New {entityLabel}
+						</h2>
 					</div>
+					<button
+						onClick={handleClose}
+						className={`p-1.5 rounded-lg transition-colors ${
+							isDark
+								? 'hover:bg-[#262626] text-[#a3a3a3] hover:text-white'
+								: 'hover:bg-[#f0f0f0] text-[#737373] hover:text-black'
+						}`}
+					>
+						<X className="w-4 h-4" />
+					</button>
 				</div>
 
-				{/* Enhanced Content */}
-				<div className="p-6">
-					<form onSubmit={handleSubmit} className="space-y-6">
-						{/* Collection Name Section */}
-						<div className="space-y-3">
+				<div className="p-4">
+					<form onSubmit={handleSubmit} className="space-y-4">
+						<div className="space-y-1.5">
 							<Label
 								htmlFor="collectionName"
-								className="text-sm font-semibold flex items-center gap-2"
+								className="text-xs font-medium"
 							>
-								<Sparkles className="w-4 h-4 text-blue-500" />
-								Collection Name
+								{entityLabel} Name
 							</Label>
-							<div className="space-y-2">
-								<Input
-									id="collectionName"
-									type="text"
-									value={collectionName}
-									onChange={handleNameChange}
-									placeholder="e.g., users, products, orders"
-									className={`h-12 rounded-xl border-2 transition-all duration-200 font-medium ${
-										nameError
-											? 'border-red-300 dark:border-red-700 focus:border-red-500 dark:focus:border-red-400'
-											: 'border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-300 dark:hover:border-gray-600'
-									} ${
-										isDark
-											? 'bg-gray-800/50 text-white placeholder-gray-400'
-											: 'bg-gray-50/50 text-gray-900 placeholder-gray-500'
-									}`}
-									autoFocus
-									required
-								/>
-								{nameError && (
-									<p className="text-sm text-red-500 dark:text-red-400 flex items-center gap-1">
-										<X className="w-3 h-3" />
-										{nameError}
-									</p>
-								)}
-								{collectionName && !nameError && (
-									<p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
-										<CheckCircle className="w-3 h-3" />
-										Valid collection name
-									</p>
-								)}
-							</div>
+							<Input
+								id="collectionName"
+								value={collectionName}
+								onChange={handleNameChange}
+								placeholder={`e.g. ${dbType === 'postgresql' ? 'users' : 'Users'}`}
+								className={`h-9 text-sm rounded-lg border ${
+									nameError
+										? 'border-red-500 focus-visible:ring-red-500'
+										: ''
+								}`}
+								autoFocus
+								required
+							/>
+							{nameError && (
+								<p className="text-[10px] text-red-500 flex items-center gap-1">
+									<AlertTriangle className="w-3 h-3" />
+									{nameError}
+								</p>
+							)}
 						</div>
 
-						{/* Timestamp Configuration Section */}
 						<div
-							className={`p-4 rounded-xl border-2 border-dashed transition-all duration-200 ${
+							className={`p-3 rounded-lg border ${
 								isDark
-									? 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
-									: 'border-gray-200 bg-gray-50/50 hover:border-gray-300'
+									? 'bg-[#1a1a1a] border-[#262626]'
+									: 'bg-[#fafafa] border-[#e5e5e5]'
 							}`}
 						>
-							<div className="flex items-center gap-2 mb-4">
-								<Clock className="w-4 h-4 text-amber-500" />
-								<Label className="text-sm font-semibold">
-									Timestamp Configuration
-								</Label>
-							</div>
-
-							<div className="space-y-4">
-								<div
-									className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
-										isDark
-											? 'bg-gray-700/50 border-gray-600/50 hover:bg-gray-700'
-											: 'bg-white/50 border-gray-200/50 hover:bg-white'
-									}`}
-								>
-									<div>
-										<div className="font-medium text-sm">
-											Auto Timestamps
-										</div>
-										<div
-											className={`text-xs ${
-												isDark
-													? 'text-gray-400'
-													: 'text-gray-500'
-											}`}
-										>
-											Automatically manage createdAt and
-											updatedAt
-										</div>
-									</div>
-									<Switch
-										checked={includeTimestamps}
-										onCheckedChange={setIncludeTimestamps}
-										className="data-[state=checked]:bg-blue-500"
-									/>
-								</div>
-
-								{includeTimestamps && (
-									<div className="space-y-3 pl-4 border-l-2 border-blue-200 dark:border-blue-700 transition-all duration-300">
-										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-2">
-												<div className="w-2 h-2 rounded-full bg-green-500"></div>
-												<span className="text-sm font-medium">
-													createdAt
-												</span>
-											</div>
-											<Switch
-												checked={includeCreatedAt}
-												onCheckedChange={
-													setIncludeCreatedAt
-												}
-												className="data-[state=checked]:bg-green-500"
-											/>
-										</div>
-										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-2">
-												<div className="w-2 h-2 rounded-full bg-orange-500"></div>
-												<span className="text-sm font-medium">
-													updatedAt
-												</span>
-											</div>
-											<Switch
-												checked={includeUpdatedAt}
-												onCheckedChange={
-													setIncludeUpdatedAt
-												}
-												className="data-[state=checked]:bg-orange-500"
-											/>
-										</div>
-									</div>
-								)}
-							</div>
-
-							{/* Enhanced Info Section */}
-							<div
-								className={`mt-4 pt-4 border-t text-xs rounded-lg p-3 ${
-									isDark
-										? 'border-gray-600 bg-blue-900/20 text-blue-300'
-										: 'border-gray-200 bg-blue-50/50 text-blue-600'
-								}`}
-							>
-								<div className="flex items-center gap-2">
-									<Sparkles className="w-3 h-3" />
-									<span className="font-medium">
-										Auto-generated field:
-									</span>
-								</div>
-								<div className="mt-1 flex items-center gap-1">
-									<code
-										className={`px-2 py-1 rounded font-mono text-xs ${
+							<div className="flex items-center justify-between mb-3">
+								<div className="space-y-0.5">
+									<Label className="text-xs font-medium">
+										Timestamps
+									</Label>
+									<p
+										className={`text-[10px] ${
 											isDark
-												? 'bg-gray-800 text-blue-400 border border-gray-700'
-												: 'bg-white text-blue-700 border border-blue-200'
+												? 'text-[#737373]'
+												: 'text-[#a3a3a3]'
 										}`}
 									>
-										_id
-									</code>
-									<span>
-										ObjectId field will be automatically
-										added
-									</span>
+										Auto-manage created/updated fields
+									</p>
 								</div>
+								<Switch
+									checked={includeTimestamps}
+									onCheckedChange={setIncludeTimestamps}
+								/>
 							</div>
+
+							{includeTimestamps && (
+								<div
+									className={`pl-3 border-l space-y-2 mt-2 pt-2 ${
+										isDark
+											? 'border-[#333]'
+											: 'border-[#e5e5e5]'
+									}`}
+								>
+									<div className="flex items-center justify-between">
+										<span className="text-[11px] font-mono">
+											createdAt
+										</span>
+										<Switch
+											checked={includeCreatedAt}
+											onCheckedChange={
+												setIncludeCreatedAt
+											}
+										/>
+									</div>
+									<div className="flex items-center justify-between">
+										<span className="text-[11px] font-mono">
+											updatedAt
+										</span>
+										<Switch
+											checked={includeUpdatedAt}
+											onCheckedChange={
+												setIncludeUpdatedAt
+											}
+										/>
+									</div>
+								</div>
+							)}
 						</div>
 
-						{/* Enhanced Action Buttons */}
-						<div className="flex gap-3 pt-2">
+						<div
+							className={`text-[10px] rounded p-2 ${
+								isDark
+									? 'bg-[#1a1a1a] text-[#a3a3a3]'
+									: 'bg-[#f5f5f5] text-[#737373]'
+							}`}
+						>
+							Auto-generated field:{' '}
+							<span className="font-mono">{idConfig.name}</span> (
+							{idConfig.type})
+						</div>
+
+						<div className="pt-2 flex gap-2">
 							<Button
 								type="button"
 								variant="outline"
 								onClick={handleClose}
-								className={`flex-1 h-12 rounded-xl font-medium transition-all duration-200 ${
-									isDark
-										? 'border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-500'
-										: 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400'
-								}`}
+								className="flex-1 h-9 text-xs rounded-lg border"
 							>
 								Cancel
 							</Button>
 							<Button
 								type="submit"
-								disabled={!collectionName.trim() || !!nameError}
-								className="flex-1 h-12 rounded-xl font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg disabled:from-gray-400 disabled:to-gray-500"
+								disabled={
+									!collectionName.trim() || !!nameError
+								}
+								className="flex-1 h-9 text-xs rounded-lg bg-foreground text-background hover:opacity-90"
 							>
-								<Database className="w-4 h-4 mr-2" />
-								Create Collection
+								Create {entityLabel}
 							</Button>
 						</div>
 					</form>

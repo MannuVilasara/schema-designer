@@ -14,7 +14,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
-		// Load theme from localStorage on mount
 		const savedTheme = localStorage.getItem('theme');
 		if (savedTheme) {
 			setIsDark(savedTheme === 'dark');
@@ -24,7 +23,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 	useEffect(() => {
 		if (mounted) {
-			// Apply theme to document and save to localStorage
 			if (isDark) {
 				document.documentElement.classList.add('dark');
 				localStorage.setItem('theme', 'dark');
@@ -36,21 +34,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 	}, [isDark, mounted]);
 
 	const toggleTheme = () => {
-		const newTheme = !isDark;
-		setIsDark(newTheme);
-
-		// Show toast notification
-		if (typeof window !== 'undefined') {
-			const toast = (window as any).toast;
-			if (toast && toast.success) {
-				toast.success(
-					`Switched to ${newTheme ? 'dark' : 'light'} theme`
-				);
-			}
-		}
+		setIsDark(!isDark);
 	};
 
-	// Show loading spinner during initial mount to prevent hydration mismatch
 	if (!mounted) {
 		return <LoadingSpinner />;
 	}

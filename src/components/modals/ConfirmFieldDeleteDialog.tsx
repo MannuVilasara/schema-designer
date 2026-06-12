@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import type { ConfirmFieldDeleteDialogProps } from '@/types';
 
 export default function ConfirmFieldDeleteDialog({
@@ -14,23 +13,17 @@ export default function ConfirmFieldDeleteDialog({
 	onCancel,
 }: ConfirmFieldDeleteDialogProps) {
 	const { isDark } = useThemeContext();
-	const [mounted, setMounted] = useState(false);
-
-	useEffect(() => {
-		setMounted(true);
-	}, []);
 
 	const getModalStyle = () => {
 		if (!position) return {};
 
-		const modalWidth = 400;
+		const modalWidth = 320;
 		const modalHeight = 200;
 		const padding = 20;
 
 		let finalX = position.x - modalWidth / 2;
 		let finalY = position.y - modalHeight / 2;
 
-		// Adjust for screen edges
 		if (finalX < padding) finalX = padding;
 		if (finalX + modalWidth > window.innerWidth - padding) {
 			finalX = window.innerWidth - modalWidth - padding;
@@ -47,70 +40,69 @@ export default function ConfirmFieldDeleteDialog({
 		};
 	};
 
-	const handleOverlayClick = (e: React.MouseEvent) => {
-		if (e.target === e.currentTarget) {
-			onCancel();
-		}
-	};
-
 	if (!isOpen) return null;
 
 	return (
-		<div
-			className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center"
-			onClick={handleOverlayClick}
-		>
+		<>
 			<div
-				className={`w-96 rounded-lg border shadow-lg ${
-					isDark
-						? 'bg-gray-800 border-gray-600 text-white'
-						: 'bg-white border-gray-200 text-gray-800'
-				}`}
-				style={position ? getModalStyle() : {}}
-			>
-				<div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
-					<div className="flex items-center gap-2">
-						<AlertTriangle className="w-5 h-5 text-red-500" />
-						<h2 className="text-lg font-semibold">Delete Field</h2>
-					</div>
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={onCancel}
-						className="p-1 h-8 w-8"
-					>
-						<X className="w-4 h-4" />
-					</Button>
-				</div>
+				className="fixed inset-0 z-40 bg-black/40"
+				onClick={onCancel}
+			/>
 
-				<div className="p-4">
-					<p className="text-sm mb-4">
+			<div
+				className={`w-80 rounded-xl border shadow-xl z-50 ${
+					isDark
+						? 'bg-[#141414] border-[#262626] text-white'
+						: 'bg-white border-[#e5e5e5] text-black'
+				}`}
+				style={
+					position
+						? getModalStyle()
+						: {
+								position: 'fixed',
+								top: '50%',
+								left: '50%',
+								transform: 'translate(-50%, -50%)',
+							}
+				}
+			>
+				<div className="p-5 text-center">
+					<div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-red-500/10 text-red-500">
+						<AlertTriangle className="w-6 h-6" />
+					</div>
+					<h2 className="text-lg font-semibold mb-2 tracking-tight">
+						Delete Field
+					</h2>
+					<p
+						className={`text-sm mb-6 ${
+							isDark ? 'text-[#a3a3a3]' : 'text-[#737373]'
+						}`}
+					>
 						Are you sure you want to delete the field{' '}
-						<strong>"{fieldName}"</strong>? This action cannot be
-						undone and will remove all data associated with this
-						field.
+						<span className="font-semibold text-foreground">
+							{fieldName}
+						</span>
+						? This action cannot be undone.
 					</p>
 
-					<div className="flex gap-2 pt-2">
+					<div className="flex gap-2">
 						<Button
-							type="button"
 							variant="outline"
 							onClick={onCancel}
-							className="flex-1"
+							className="flex-1 h-10 border"
 						>
 							Cancel
 						</Button>
 						<Button
-							type="button"
 							variant="destructive"
 							onClick={onConfirm}
-							className="flex-1"
+							className="flex-1 h-10"
 						>
-							Delete Field
+							Delete
 						</Button>
 					</div>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }

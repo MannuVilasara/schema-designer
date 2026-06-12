@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useThemeContext } from '@/contexts/ThemeContext';
+import { useSchemaStore } from '@/store/schemaStore';
+import { getEntityLabel } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { X } from 'lucide-react';
+import { X, AlertTriangle } from 'lucide-react';
 import type { EditCollectionModalProps } from '@/types';
 
 export default function EditCollectionModal({
@@ -17,23 +18,26 @@ export default function EditCollectionModal({
 	onSave,
 }: EditCollectionModalProps) {
 	const { isDark } = useThemeContext();
-	const [mounted, setMounted] = useState(false);
+	const dbType = useSchemaStore((s) => s.dbType);
+	const entityLabel = getEntityLabel(dbType);
+	
 	const [collectionName, setCollectionName] = useState('');
 	const [nameError, setNameError] = useState('');
 
 	useEffect(() => {
-		setMounted(true);
-	}, []);
-	// Validate collection name
+		if (collection) {
+			setCollectionName(collection.name);
+			setNameError('');
+		}
+	}, [collection]);
+
 	const validateCollectionName = (name: string) => {
 		if (name.includes(' ')) {
-			setNameError('Collection name cannot contain spaces');
+			setNameError(`${entityLabel} name cannot contain spaces`);
 			return false;
 		}
 		if (name && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-			setNameError(
-				'Collection name must start with a letter or underscore and contain only letters, numbers, and underscores'
-			);
+			setNameError(`${entityLabel} name must start with a letter or underscore`);
 			return false;
 		}
 		setNameError('');
@@ -50,25 +54,16 @@ export default function EditCollectionModal({
 		}
 	};
 
-	useEffect(() => {
-		if (collection) {
-			setCollectionName(collection.name);
-			setNameError(''); // Reset error when collection changes
-		}
-	}, [collection]);
-
 	const getModalStyle = () => {
 		if (!position) return {};
 
-		const modalWidth = 320; // Reduced from 400
-		const modalHeight = 280; // Reduced from 350
+		const modalWidth = 320;
+		const modalHeight = 250;
 		const padding = 20;
 
-		// Center the modal around the click position
 		let finalX = position.x - modalWidth / 2;
 		let finalY = position.y - modalHeight / 2;
 
-		// Adjust for screen edges
 		if (finalX < padding) finalX = padding;
 		if (finalX + modalWidth > window.innerWidth - padding) {
 			finalX = window.innerWidth - modalWidth - padding;
@@ -90,13 +85,6 @@ export default function EditCollectionModal({
 		const trimmedName = collectionName.trim();
 		if (trimmedName && collection && validateCollectionName(trimmedName)) {
 			onSave(collection.id, trimmedName);
-			onClose();
-		}
-	};
-
-	const handleOverlayClick = (e: React.MouseEvent) => {
-		if (e.target === e.currentTarget) {
-			onClose();
 		}
 	};
 
@@ -107,103 +95,113 @@ export default function EditCollectionModal({
 	);
 
 	return (
-		<div
-			className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center"
-			onClick={handleOverlayClick}
-		>
+		<>
 			<div
-				className={`w-80 rounded-lg border shadow-lg ${
+				className="fixed inset-0 bg-black/40 z-40"
+				onClick={onClose}
+			/>
+
+			<div
+				className={`w-80 rounded-xl border shadow-xl z-50 ${
 					isDark
-						? 'bg-gray-800 border-gray-600 text-white'
-						: 'bg-white border-gray-200 text-gray-800'
+						? 'bg-[#141414] border-[#262626] text-white'
+						: 'bg-white border-[#e5e5e5] text-black'
 				}`}
 				style={position ? getModalStyle() : {}}
 			>
-				<div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
-					<h2 className="text-lg font-semibold">Edit Collection</h2>
-					<Button
-						variant="ghost"
-						size="sm"
+				<div
+					className={`px-4 py-3 border-b flex items-center justify-between ${
+						isDark ? 'border-[#262626]' : 'border-[#e5e5e5]'
+					}`}
+				>
+					<h2 className="font-semibold text-sm">Edit {entityLabel}</h2>
+					<button
 						onClick={onClose}
-						className="p-1 h-8 w-8"
+						className={`p-1.5 rounded-lg transition-colors ${
+							isDark
+								? 'hover:bg-[#262626] text-[#a3a3a3] hover:text-white'
+								: 'hover:bg-[#f0f0f0] text-[#737373] hover:text-black'
+						}`}
 					>
 						<X className="w-4 h-4" />
-					</Button>
+					</button>
 				</div>
 
-				<form onSubmit={handleSubmit} className="p-4 space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="collectionName">Collection Name</Label>
-						<Input
-							id="collectionName"
-							type="text"
-							value={collectionName}
-							onChange={handleNameChange}
-							placeholder="Enter collection name (no spaces)"
-							required
-							autoFocus
-							className={nameError ? 'border-red-500' : ''}
-						/>
-						{nameError && (
-							<p className="text-red-500 text-xs">{nameError}</p>
-						)}
-					</div>
+				<div className="p-4">
+					<form onSubmit={handleSubmit} className="space-y-4">
+						<div className="space-y-1.5">
+							<Label
+								htmlFor="collectionName"
+								className="text-xs font-medium"
+							>
+								{entityLabel} Name
+							</Label>
+							<Input
+								id="collectionName"
+								value={collectionName}
+								onChange={handleNameChange}
+								placeholder="Name"
+								className={`h-9 text-sm rounded-lg border ${
+									nameError ? 'border-red-500 focus-visible:ring-red-500' : ''
+								}`}
+								autoFocus
+								required
+							/>
+							{nameError && (
+								<p className="text-[10px] text-red-500 flex items-center gap-1">
+									<AlertTriangle className="w-3 h-3" />
+									{nameError}
+								</p>
+							)}
+						</div>
 
-					<div className="space-y-3">
-						<Label className="text-sm font-medium">
-							Collection Info
-						</Label>
-						<div className="space-y-2 text-sm">
-							<div className="flex justify-between">
-								<span
-									className={
-										isDark
-											? 'text-gray-400'
-											: 'text-gray-600'
-									}
-								>
-									Total Fields:
-								</span>
-								<span className="font-medium">
-									{collection.fields.length}
-								</span>
-							</div>
-							<div className="flex justify-between">
-								<span
-									className={
-										isDark
-											? 'text-gray-400'
-											: 'text-gray-600'
-									}
-								>
-									Has Timestamps:
-								</span>
-								<span className="font-medium">
-									{hasTimestampFields ? 'Yes' : 'No'}
-								</span>
+						<div
+							className={`p-3 rounded-lg border ${
+								isDark
+									? 'bg-[#1a1a1a] border-[#262626]'
+									: 'bg-[#fafafa] border-[#e5e5e5]'
+							}`}
+						>
+							<div className="space-y-2 text-xs">
+								<div className="flex justify-between">
+									<span className={isDark ? 'text-[#737373]' : 'text-[#a3a3a3]'}>
+										Total Fields:
+									</span>
+									<span className="font-medium">
+										{collection.fields.length}
+									</span>
+								</div>
+								<div className="flex justify-between">
+									<span className={isDark ? 'text-[#737373]' : 'text-[#a3a3a3]'}>
+										Has Timestamps:
+									</span>
+									<span className="font-medium">
+										{hasTimestampFields ? 'Yes' : 'No'}
+									</span>
+								</div>
 							</div>
 						</div>
-					</div>
 
-					<div className="flex gap-2 pt-4">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={onClose}
-							className="flex-1"
-						>
-							Cancel
-						</Button>
-						<Button
-							type="submit"
-							className="flex-1"
-							disabled={!collectionName.trim() || !!nameError}
-						>
-							Save Changes
-						</Button>
-					</div>
-				</form>
+						<div className="pt-2 flex gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={onClose}
+								className="flex-1 h-9 text-xs rounded-lg border"
+							>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								disabled={!collectionName.trim() || !!nameError}
+								className="flex-1 h-9 text-xs rounded-lg bg-foreground text-background hover:opacity-90"
+							>
+								Save
+							</Button>
+						</div>
+					</form>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 }
